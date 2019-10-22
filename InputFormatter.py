@@ -17,3 +17,15 @@ class InputFormatter:
             return inputString.upper()
         else:
             return None
+
+    @staticmethod
+    def ensureValidInput(inputMessage, *validResponses):
+        # returned response deos not neccesarily
+        Exit = False
+        while (not Exit):
+            response = input(inputMessage)
+            for r in validResponses:
+                if (r == response):
+                    Exit = True
+            
+        return response

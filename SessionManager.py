@@ -8,10 +8,10 @@ class SessionManager:
     def enterSession():
         
         sessionManager = SessionManager()
-        # user = sessionManager.AuthenticateUser()
+        user = sessionManager.AuthenticateUser()
         # tests
         #user = TrafficOfficer("Traffic Officer", "John Doe")
-        user = RegistryAgent("Registry Agent", "Mike Myers")
+        #user = RegistryAgent("Registry Agent", "Mike Myers")
         if (user != None):
             user.accessUserServices()
         else:
