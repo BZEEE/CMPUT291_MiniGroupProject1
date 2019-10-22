@@ -1,6 +1,6 @@
 
 from User import User
-import os
+from SysCallManager import SysCallManager
 
 
 class RegistryAgent(User):
@@ -35,7 +35,7 @@ class RegistryAgent(User):
         print(header + "\n")
 
     def accessUserServices(self):
-        os.system("cls")
+        SysCallManager.clearWindow()
         # super().accessUserServices()
         # show possible services for Registry Agent
         accessServices = True
@@ -83,7 +83,7 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
 
     def registerMarriage(self):
         # allow registry agent to register a marriage
@@ -99,7 +99,7 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
 
     def renewVehicleRegistration(self):
         # allow registry agent to renew their registration
@@ -116,7 +116,7 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
 
     def processBillOfSale(self):
         # allow rgistry agent to process a bill of sale
@@ -133,7 +133,7 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
 
     def processPayment(self):
         # allow registry agent to process a payment
@@ -150,7 +150,7 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
 
     def getDriverAbstract(self):
         # allow registry agent to get a driver abstract
@@ -167,4 +167,5 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
 
         # clear the window again
-        os.system("cls")
+        SysCallManager.clearWindow()
+        
