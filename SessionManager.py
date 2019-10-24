@@ -4,6 +4,10 @@ from RegistryAgent import RegistryAgent
 from AuthenticationManager import AuthenticationManager
 
 class SessionManager:
+    def __init__(self):
+        #Value of password and Uid will be set after authentication
+        self.validPassword = None 
+        self.validUid = None
     @staticmethod
     def enterSession():
         
@@ -61,7 +65,7 @@ class SessionManager:
                 print("password is not correct, please ensure email is correct\n")
                 continue
             validPassword = True
-
+        self.validPassword = password #saving this to be able to refer to the current user
         userType = AuthenticationManager.getUserType(uid)
         fullname = AuthenticationManager.getUserFullname(uid)
         if (userType == 'r'):
