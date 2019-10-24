@@ -95,7 +95,7 @@ create table payments (
 create table users (
   uid       char(20),
   pwd       char(20),
-  utype     char(20),
+  utype     char(1),
   fname     char(12),
   lname     char(12),
   city      char(20),

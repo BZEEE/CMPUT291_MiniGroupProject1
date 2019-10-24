@@ -86,21 +86,23 @@ class TrafficOfficer(User):
             cursor.commit()
             cursorResponse = cursor.fetchall()
 
-        
-        self.displayFormattedQueryResponse(cursorResponse, 0, 5, "fname", "lname", "make", "model", "year", "color")
+        if (cursorResponse != None):
+            self.displayFormattedQueryResponse(cursorResponse, 0, 5, "fname", "lname", "make", "model", "year", "color")
 
-        response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N): ", ["y", "Y", "n", "N"])
-        if (response.upper() == "Y"):
-            violationDate = input("enter violation date: ")
-            violationMessage = input("enter reason for violation: ")
-            fineAmount = input("enter fine amount: ")
-            tno = UniqueIDManager.getUniqueTicketNumber()
+            response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N): ", ["y", "Y", "n", "N"])
+            if (response.upper() == "Y"):
+                violationDate = input("enter violation date: ")
+                violationMessage = input("enter reason for violation: ")
+                fineAmount = input("enter fine amount: ")
+                tno = UniqueIDManager.getUniqueTicketNumber()
 
-            cursor.execute(
-                "Insert into tickets({0}, {1}, {2}, {3}, {4})".format(tno, regno, fineAmount, violationMessage, violationDate)
-            )
-            cursor.commit()
-            print("successfully issued ticket\n")
+                cursor.execute(
+                    "Insert into tickets({0}, {1}, {2}, {3}, {4})".format(tno, regno, fineAmount, violationMessage, violationDate)
+                )
+                cursor.commit()
+                print("successfully issued ticket\n")
+        else:
+            print("No matches were found")
         # end logic
         ##################################################################################
 
@@ -128,33 +130,33 @@ class TrafficOfficer(User):
         query += "("
         for make in range(len(carMakes)):
             if (make == 0):
-                query += carMakes[make]
+                query += "v.make = " + carMakes[make]
             else:
-                query += "Or {}".format(carMakes[make])
+                query += " Or {}".format("v.make = " + carMakes[make])
         query += ") And ("
         for model in range(len(carModels)):
             if (model == 0):
-                query += carModels[model]
+                query += "v.model = " + carModels[model]
             else:
-                query += "Or {}".format(carModels[model])
+                query += "Or {}".format("v.make = " + carModels[model])
         query += ") And ("
         for year in range(len(carYears)):
             if (year == 0):
-                query += carYears[year]
+                query += "v.year = " + carYears[year]
             else:
-                query += "Or {}".format(carYears[year])
+                query += "Or {}".format("v.year = " + carYears[year])
         query += ") And ("
         for color in range(len(carColors)):
             if (color == 0):
-                query += carColors[color]
+                query += "v.color = " + carColors[color]
             else:
-                query += "Or {}".format(carColors[color])
+                query += "Or {}".format("v.color = " + carColors[color])
         query += ") And ("
         for plate in range(len(carPlates)):
             if (plate == 0):
-                query += carPlates[plate]
+                query += "r.plate = " + carPlates[plate]
             else:
-                query += "Or {}".format(carPlates[plate])
+                query += "Or {}".format("r.plate = " + carPlates[plate])
         query += ")"
 
         cursor.execute( query )
