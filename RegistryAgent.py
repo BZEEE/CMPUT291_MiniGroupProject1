@@ -1,9 +1,12 @@
 
 from User import User
 from SysCallManager import SysCallManager
+from cursor import sqlCursor
+from random import randint
 
 
 class RegistryAgent(User):
+    conn = sqlCursor()
     # inherit from base properties of user
     def __init__(self, uType, name):
         self.userType = uType
@@ -68,13 +71,31 @@ class RegistryAgent(User):
             else:
                 print("the action you selected is not recognized, try again\n")
 
-    def registerBirth(self):
+    def registerBirth(self,fname,lname,gender,f_fname,f_lname,m_fname,m_lname,bdate,bplace,f_bdate,f_bplace,f_address,f_phone,m_bdate,m_bplace,m_address,m_phone):
         # allow registry agent to register a birth
         # perform issue ticket steps
-
+        if self.check_parents(f_fname,f_lname):#True if father is not in database
+            self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:f_fname,lname:f_lname,f_bdate:f_bdate,f_bplace:f_bplace,f_address:f_address,f_phone:f_phone)",{
+                'f_fname':f_fname,'f_lname':f_lname,'f_bdate':f_bdate,'f_bplace':f_bplace,'f_address':f_address,'f_phone':f_phone})
+            self.conn.get_instance().get_cursor().commit()
+        if self.check_parents(m_fname,m_lname):#True if mother is not in database
+            self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:m_fname,lname:m_lname,m_bdate:m_bdate,m_bplace:m_bplace,m_address:m_address,m_phone:m_phone)",{
+                'm_fname':m_fname,'m_lname':m_lname,'m_bdate':m_bdate,'m_bplace':m_bplace,'m_address':m_address,'m_phone':m_phone})
+            self.conn.get_instance().get_cursor().commit()
+        regno = random.randint(1,100000)
+        regdate = self.get_current_date()
+        regplace = User.getUserCity
+        while self.check_id(regno):#will check if id already exist
+            regno = random.randint(1,100000)
+        
         ##################################################################################
         # register birt SQL logic goes here
-
+        self.conn.get_instance().get_cursor().executescript('''INSERT INTO births(
+            regno,fname,lname,regdate,regplace,gender,f_fname.f_lname,m_fname,m_lname
+        );
+        INSERT INTO persons(
+            fname,lname,bdate,bplace,m_address,m_phone
+        );''')
 
         # end logic
         ##################################################################################
@@ -84,7 +105,25 @@ class RegistryAgent(User):
 
         # clear the window again
         SysCallManager.clearWindow()
-
+    #%%%%%%%
+    #The following function can be made into their own seperate file if needed
+    def check_parents(self,p_fname,p_lname):#helper function for registerBirth
+        self.conn.get_instance().get_cursor().execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
+        output = elf.conn.get_instance().get_cursor().fetchone()
+        if output[0] != None:
+            return False#need to know what the query returns when it returns an empty tuple
+        return True
+    def check_id(self,num):#helper function for registerBirth
+        #will check if 'num' is already an existing id
+        self.conn.get_instance().get_cursor().execute('SELECT regno FROM births WHERE regno =:num;',{'num':num})
+        output = self.conn.get_instance().get_cursor().fetchone()[0]
+        if output[0] != None:#need to check if sql outputs None for empty tuples
+            return True#id already exist
+        return False
+    def get_current_date(self):
+        conn.get_instance().get_cursor().execute("SELECT date('now')")
+        return self.conn.get_instance().get_cursor().fetchone()[0]
+    #%%%%%%%%%
     def registerMarriage(self):
         # allow registry agent to register a marriage
         # perform issue ticket steps
