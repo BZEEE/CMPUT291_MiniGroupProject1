@@ -49,7 +49,7 @@ class TrafficOfficer(User):
             print("Enter (2) to find a specific car's owner")
             print("Enter (3) to exit and log out of the session\n")
             response = input("please enter an action: ")
-            print("\n")
+
             if (response == "1"):
                 self.issueTicket()
             elif (response == "2"):
@@ -64,42 +64,33 @@ class TrafficOfficer(User):
         # perform issue ticket steps
 
         cursor = sqlCursor.get_instance().get_cursor()
+        conn = sqlCursor.get_instance().get_connection()
         regno = input("enter registration number: ")
         ##################################################################################
         # issue ticket SQL logic goes here
+
         cursorResponse = cursor.execute(
             "Select r.fname, r.lname, v.make, v.model, v.year, v.color " \
-            "From tickets As t, registrations As r, vehicles As v" \
-            "Where t.regno = r.regno And r.vin = v.vin"
+            "From registrations As r, vehicles As v " \
+            "Where r.regno=? And r.vin = v.vin", (regno,)
         )
-        cursor.commit()
+        conn.commit()
         cursorResponse = cursor.fetchall()
 
-        while (cursorResponse == None):
-            print("\rregistration number does not exist")
-            regno = input("enter registration number: ")
-            cursorResponse = cursor.execute(
-                "Select r.fname, r.lname, v.make, v.model, v.year, v.color " \
-                "From tickets As t, registrations As r, vehicles As v" \
-                "Where t.regno = r.regno And r.vin = v.vin"
-            )
-            cursor.commit()
-            cursorResponse = cursor.fetchall()
-
         if (cursorResponse != None):
-            self.displayFormattedQueryResponse(cursorResponse, 0, 5, "fname", "lname", "make", "model", "year", "color")
+            self.displayFormattedQueryResponse(cursorResponse, 0, 5, ["first name", "last name", "make", "model", "year", "color"])
 
             response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N): ", ["y", "Y", "n", "N"])
             if (response.upper() == "Y"):
                 violationDate = input("enter violation date: ")
                 violationMessage = input("enter reason for violation: ")
                 fineAmount = input("enter fine amount: ")
-                tno = UniqueIDManager.getUniqueTicketNumber()
+                tno = UniqueIDManager.getInstance().getUniqueTicketNumber()
 
                 cursor.execute(
-                    "Insert into tickets({0}, {1}, {2}, {3}, {4})".format(tno, regno, fineAmount, violationMessage, violationDate)
+                    "Insert into tickets values (?, ?, ?, ?, ?)", (tno, regno, fineAmount, violationMessage, violationDate)
                 )
-                cursor.commit()
+                conn.commit()
                 print("successfully issued ticket\n")
         else:
             print("No matches were found")
@@ -116,6 +107,7 @@ class TrafficOfficer(User):
         # allow the traffic officer to find a car owner
         # perform issue ticket steps
         cursor = sqlCursor.get_instance().get_cursor()
+        conn = sqlCursor.get_instance().get_connection()
         ##################################################################################
         # issue ticket SQL logic goes here
         carMakes = input("enter car make(s), separate each by a space").split(" ")
@@ -160,7 +152,7 @@ class TrafficOfficer(User):
         query += ")"
 
         cursor.execute( query )
-        cursor.commit()
+        conn.commit()
 
         cursorResponse = cursor.fetchall()
 
@@ -169,7 +161,7 @@ class TrafficOfficer(User):
             if (len(cursorResponse) > 4):
                 # show make, model, year, color, and plate of all matches
                 # let user select one
-                self.displayFormattedQueryResponse(cursorResponse, 2, 6, "make", "model", "year", "color", "plate")
+                self.displayFormattedQueryResponse(cursorResponse, 2, 6, ["make", "model", "year", "color", "plate"])
                 possibleInputs = []
                 for i in range(len(cursorResponse)):
                     print("enter ({0}) to select {1} {2} {3}".format( i + 1, cursorResponse[i][4]), cursorResponse[i][2], cursorResponse[i][3])
@@ -177,12 +169,12 @@ class TrafficOfficer(User):
                 selection = InputFormatter.ensureValidInput("Select one of the options above: ", possibleInputs)
                 
                 index = selection - 1
-                self.displayFormattedQueryResponse([cursorResponse[index]], 0, 0, "first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry")
+                self.displayFormattedQueryResponse([cursorResponse[index]], 0, 0, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
                 
             else:
                 # total matches returned from query is leass than 4
                 # show fullname, make, model, year, color, plate, regdate, and expiry date
-                self.displayFormattedQueryResponse(cursorResponse, 0, 8, "first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry")
+                self.displayFormattedQueryResponse(cursorResponse, 0, 8, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
         else:
             print("Could not find any matches")
         # end logic

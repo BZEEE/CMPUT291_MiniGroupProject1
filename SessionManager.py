@@ -33,42 +33,36 @@ class SessionManager:
         validPassword = False
         print("###################################################################################")
         print("########################   Welcome to the Login Screen   ##########################")
-        print("###################################################################################\n\n")
+        print("###################################################################################\n")
 
         while not validUID: 
             # alternative implementation of a do-while loop in python
             uid = input("enter your uid: ")
             if (not isinstance(uid, str)):
-                print("\r\r")
                 # return to beginning of authenticate while loop
                 print("email entry is not of type(str)")
                 continue
             if (not AuthenticationManager.checkIfUniqueIdExists(uid)):
-                print("\r\r")
                 # return to beginning of authenticate while loop since email is not in database
-                print("uid is not recognized in database, please ensure uid is correct\n")
+                print("uid is not recognized in database, please ensure uid is correct")
                 continue
             validUID = True
 
-        print("\r\r\n")
         while not validPassword:
-            print("enter your uid: {0}".format(uid))
             password = input("enter your password: ")
             if (not isinstance(password, str)):
-                print("\r\r\r")
                 # return to beginning of authenticate while loop
                 print("password entry is not of type(str)")
                 continue
             if (not AuthenticationManager.checkIfPaswwordMatchesUniqueId(uid, password)):
-                print("\r\r\r")
                 # return to beginning of authenticate while loop since email is not in database
-                print("password is not correct, please ensure email is correct\n")
+                print("password is not correct")
                 continue
             validPassword = True
         self.validPassword = password #saving this to be able to refer to the current user
         userType = AuthenticationManager.getUserType(uid)
         fullname = AuthenticationManager.getUserFullname(uid)
-        if (userType == 'r'):
+        if (userType == 'a'):
             return RegistryAgent(userType, fullname)
         elif (userType == 'o'):
             return TrafficOfficer(userType, fullname)

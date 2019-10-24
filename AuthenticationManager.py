@@ -34,12 +34,11 @@ class AuthenticationManager:
         cursorResponse = cursor.execute(
             "Select pwd " \
             "From users " \
-            "Where uid=:uid", {"uid": uid}
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
 
         conn.commit()
         cursorResponse = cursor.fetchall()
-        print(cursorResponse)
 
         if (cursorResponse == None):
             return False
@@ -54,7 +53,7 @@ class AuthenticationManager:
         cursorResponse = cursor.execute(
             "Select utype " \
             "From users " \
-            "Where uid=:uid", {"uid": uid}
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
         conn.commit()
         cursorResponse = cursor.fetchall()
@@ -72,7 +71,7 @@ class AuthenticationManager:
         cursorResponse = cursor.execute(
             "Select fname, lname " \
             "From users " \
-            "Where uid=:uid", {"uid": uid}
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
         conn.commit()
         cursorResponse = cursor.fetchall()
