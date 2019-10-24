@@ -9,7 +9,9 @@ class SysCallManager:
 
     @staticmethod 
     def ReturnToDashboard():
-        i = 5
+        input("press Enter to return to Dashboard")
+        print("\r")
+        i = 3
         while (i > 0):
             print("Returning To Dashboard in {}".format(i))
             time.sleep(1)

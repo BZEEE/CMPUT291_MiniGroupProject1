@@ -9,41 +9,69 @@ class AuthenticationManager:
         # get tuple list of all uid's in users
         cursor = sqlCursor.get_instance().get_cursor()
         cursorResponse = cursor.execute(
-            "Select uid" \
+            "Select uid " \
             "From users"
         )
-        match = False
-        for userID in cursorResponse:
-            if (userID.upper() == uid.upper()):
-                match = True
+        cursor.commit()
+        cursorResponse = cursor.fetchall()
 
-        return match
+        match = False
+        if (cursorResponse == None):
+            return match
+        else:
+            for userID in cursorResponse:
+                if (userID[0].upper() == uid[0].upper()):
+                    match = True
+
+            return match
 
     @staticmethod
     def checkIfPaswwordMatchesUniqueId(uid, password):
         # return true if password matches correctly with unique id
         cursor = sqlCursor.get_instance().get_cursor()
         cursorResponse = cursor.execute(
-            "Select pwd" \
-            "From users" \
+            "Select pwd " \
+            "From users " \
             "Where uid = " + uid
         )
+        cursor.commit()
+        cursorResponse = cursor.fetchall()
 
-        return (cursorResponse == password)
+        if (cursorResponse == None):
+            return False
+        else:
+            return (cursorResponse[0][0] == password)
     
     @staticmethod
     def getUserType(uid):
         # return utype associated with user
-        pass
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursorResponse = cursor.execute(
+            "Select utype " \
+            "From users " \
+            "Where uid = " + uid
+        )
+        cursor.commit()
+        cursorResponse = cursor.fetchall()
+
+        if (cursorResponse == None):
+            return None
+        else:
+            return cursorResponse[0][0]
 
     @staticmethod
     def getUserFullname(uid):
         # return fullname (string) of user 
         cursor = sqlCursor.get_instance().get_cursor()
         cursorResponse = cursor.execute(
-            "Select fname, lname" \
-            "From users" \
+            "Select fname, lname " \
+            "From users " \
             "Where uid = " + uid
         )
+        cursor.commit()
+        cursorResponse = cursor.fetchall()
 
-        return cursorResponse[0] + " " + cursorResponse[1]
+        if (cursorResponse == None):
+            return None
+        else:
+            return cursorResponse[0][0] + " " + cursorResponse[0][1]

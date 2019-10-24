@@ -3,6 +3,7 @@ from User import User
 from SysCallManager import SysCallManager
 from cursor import sqlCursor
 from InputFormatter import InputFormatter
+from UniqueIDManager import UniqueIDManager
 
 
 class TrafficOfficer(User):
@@ -71,18 +72,34 @@ class TrafficOfficer(User):
             "From tickets As t, registrations As r, vehicles As v" \
             "Where t.regno = r.regno And r.vin = v.vin"
         )
-        print(cursorResponse)
+        cursor.commit()
+        cursorResponse = cursor.fetchall()
 
-        response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N)", "y", "Y", "n", "N")
+        while (cursorResponse == None):
+            print("\rregistration number does not exist")
+            regno = input("enter registration number: ")
+            cursorResponse = cursor.execute(
+                "Select r.fname, r.lname, v.make, v.model, v.year, v.color " \
+                "From tickets As t, registrations As r, vehicles As v" \
+                "Where t.regno = r.regno And r.vin = v.vin"
+            )
+            cursor.commit()
+            cursorResponse = cursor.fetchall()
+
+        
+        self.displayFormattedQueryResponse(cursorResponse, 0, 5, "fname", "lname", "make", "model", "year", "color")
+
+        response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N): ", ["y", "Y", "n", "N"])
         if (response.upper() == "Y"):
             violationDate = input("enter violation date: ")
             violationMessage = input("enter reason for violation: ")
             fineAmount = input("enter fine amount: ")
-            tno = input("give the ticket a unique id of the format : ")
+            tno = UniqueIDManager.getUniqueTicketNumber()
 
             cursor.execute(
                 "Insert into tickets({0}, {1}, {2}, {3}, {4})".format(tno, regno, fineAmount, violationMessage, violationDate)
             )
+            cursor.commit()
             print("successfully issued ticket\n")
         # end logic
         ##################################################################################
@@ -105,7 +122,7 @@ class TrafficOfficer(User):
         carColors = input("enter car color(s), separate each by a space").split(" ")
         carPlates = input("enter car plate(s), separate each by a space").split(" ")
 
-        query = "Select r.fname, r.lname" \
+        query = "Select r.fname, r.lname, v.make, v.model, v.year, v.color, r.plate, r.regdate, r.expiry" \
                 "From registrations As r, vehicles As v" \
                 "Where r.vin = v.vin And "
         query += "("
@@ -141,19 +158,33 @@ class TrafficOfficer(User):
         query += ")"
 
         cursor.execute( query )
+        cursor.commit()
 
-        if (len(queryResponse) == 4):
-            # show make, model, year, color, and plate of all matches
-            # let user select one
-            pass
+        cursorResponse = cursor.fetchall()
+
+        if (cursorResponse != None):
+            
+            if (len(cursorResponse) > 4):
+                # show make, model, year, color, and plate of all matches
+                # let user select one
+                self.displayFormattedQueryResponse(cursorResponse, 2, 6, "make", "model", "year", "color", "plate")
+                possibleInputs = []
+                for i in range(len(cursorResponse)):
+                    print("enter ({0}) to select {1} {2} {3}".format( i + 1, cursorResponse[i][4]), cursorResponse[i][2], cursorResponse[i][3])
+                    possibleInputs.append(i + 1)
+                selection = InputFormatter.ensureValidInput("Select one of the options above: ", possibleInputs)
+                
+                index = selection - 1
+                self.displayFormattedQueryResponse([cursorResponse[index]], 0, 0, "first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry")
+                
+            else:
+                # total matches returned from query is leass than 4
+                # show fullname, make, model, year, color, plate, regdate, and expiry date
+                self.displayFormattedQueryResponse(cursorResponse, 0, 8, "first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry")
         else:
-            # 
-            pass
+            print("Could not find any matches")
         # end logic
         ##################################################################################
-
-        print("successfully found car owner\n")
-        input("press Enter to return to Dashboard")
 
         # clear the window again
         SysCallManager.clearWindow()

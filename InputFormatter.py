@@ -19,7 +19,7 @@ class InputFormatter:
             return None
 
     @staticmethod
-    def ensureValidInput(inputMessage, *validResponses):
+    def ensureValidInput(inputMessage, validResponses):
         # returned response deos not neccesarily
         Exit = False
         while (not Exit):
