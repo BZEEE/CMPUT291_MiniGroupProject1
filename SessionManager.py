@@ -59,7 +59,7 @@ class SessionManager:
                 # return to beginning of authenticate while loop
                 print("password entry is not of type(str)")
                 continue
-            if (AuthenticationManager.checkIfPaswwordMatchesUniqueId(uid, password)):
+            if (not AuthenticationManager.checkIfPaswwordMatchesUniqueId(uid, password)):
                 print("\r\r\r")
                 # return to beginning of authenticate while loop since email is not in database
                 print("password is not correct, please ensure email is correct\n")

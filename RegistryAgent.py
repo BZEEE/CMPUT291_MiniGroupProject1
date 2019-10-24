@@ -6,7 +6,6 @@ from random import randint
 
 
 class RegistryAgent(User):
-    conn = sqlCursor()
     # inherit from base properties of user
     def __init__(self, uType, name):
         self.userType = uType

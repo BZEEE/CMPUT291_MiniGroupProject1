@@ -2,17 +2,21 @@
 import sqlite3
 
 class sqlCursor:
-    __conn = sqlite3.connect('./test.db')
+    __conn = sqlite3.connect('./mgp1.db')
     __singleton = None
-    __cursor = __conn.cursor()
+    __cursor = None
     @staticmethod
-    def get_instance(self):
-        if __singleton == None:
-            __cursor = self.__conn.cursor()
-            __singleton = sqlCursor()
-            return __singleton
-        return __singleton
-    @staticmethod
+    def get_instance():
+        if (sqlCursor.__singleton == None):
+            sqlCursor.__cursor = sqlCursor.__conn.cursor()
+            sqlCursor.__singleton = sqlCursor()
+            return sqlCursor.__singleton
+        else:
+            return sqlCursor.__singleton
+
+    def get_connection(self):
+        return self.__conn
+
     def get_cursor(self):
         return self.__cursor
 
