@@ -71,16 +71,20 @@ class RegistryAgent(User):
             else:
                 print("the action you selected is not recognized, try again\n")
 
-    def registerBirth(self,fname,lname,gender,f_fname,f_lname,m_fname,m_lname,bdate,bplace,f_bdate,f_bplace,f_address,f_phone,m_bdate,m_bplace,m_address,m_phone):
+    def registerBirth(self):
         # allow registry agent to register a birth
         # perform issue ticket steps
-        if self.check_parents(f_fname,f_lname):#True if father is not in database
+        columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,'m_lname': None,'bdate': None,'bplace': None,'f_bdate': None,\
+        'f_bplace': None,'f_address': None,'f_phone': None,'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
+        for items in columns:
+            columns[item] = input(f'Enter {item}: ')
+        if self.check_parents(columns['f_fname'],columns['f_lname']):#True if father is not in database
             self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:f_fname,lname:f_lname,f_bdate:f_bdate,f_bplace:f_bplace,f_address:f_address,f_phone:f_phone)",{
-                'f_fname':f_fname,'f_lname':f_lname,'f_bdate':f_bdate,'f_bplace':f_bplace,'f_address':f_address,'f_phone':f_phone})
+                'f_fname':columns['f_fname'],'f_lname':columns['f_lname'],'f_bdate':columns['f_bdate'],'f_bplace':columns['f_bplace'],'f_address':columns['f_address'],'f_phone':columns['f_phone']})
             self.conn.get_instance().get_cursor().commit()
-        if self.check_parents(m_fname,m_lname):#True if mother is not in database
+        if self.check_parents(columns['m_fname'],columns['m_lname']):#True if mother is not in database
             self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:m_fname,lname:m_lname,m_bdate:m_bdate,m_bplace:m_bplace,m_address:m_address,m_phone:m_phone)",{
-                'm_fname':m_fname,'m_lname':m_lname,'m_bdate':m_bdate,'m_bplace':m_bplace,'m_address':m_address,'m_phone':m_phone})
+                'm_fname':columns['m_fname'],'m_lname':columns['m_lname'],'m_bdate':columns['m_bdate'],'m_bplace':columns['m_bplace'],'m_address':columns['m_address'],'m_phone':columns['m_phone']})
             self.conn.get_instance().get_cursor().commit()
         regno = random.randint(1,100000)
         regdate = self.get_current_date()
@@ -95,8 +99,8 @@ class RegistryAgent(User):
         );
         INSERT INTO persons(
             fname,lname,bdate,bplace,m_address,m_phone
-        );''')
-
+        );''',{'fname':columns['fname'],'lname':columns['lname'],'regno':columns['regno'],'regdate':columns['regdate'],'regplace':columns['regplace'],'gender':columns['gender'],'f_fname':columns['f_fname'],'f_lname':columns['f_lname'],\
+            'm_fname':columns['m_fname'],'bdate':columns['bdate'],'bplace':columns['bplace'],'m_lname':columns['m_lname'],'m_address':columns['m_address'],'m_phone':columns['m_phone']})
         # end logic
         ##################################################################################
 
@@ -109,7 +113,7 @@ class RegistryAgent(User):
     #The following function can be made into their own seperate file if needed
     def check_parents(self,p_fname,p_lname):#helper function for registerBirth
         self.conn.get_instance().get_cursor().execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
-        output = elf.conn.get_instance().get_cursor().fetchone()
+        output = self.conn.get_instance().get_cursor().fetchone()
         if output[0] != None:
             return False#need to know what the query returns when it returns an empty tuple
         return True
@@ -121,7 +125,7 @@ class RegistryAgent(User):
             return True#id already exist
         return False
     def get_current_date(self):
-        conn.get_instance().get_cursor().execute("SELECT date('now')")
+        self.conn.get_instance().get_cursor().execute("SELECT date('now')")
         return self.conn.get_instance().get_cursor().fetchone()[0]
     #%%%%%%%%%
     def registerMarriage(self):
