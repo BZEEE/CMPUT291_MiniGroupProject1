@@ -67,31 +67,33 @@ class RegistryAgent(User):
                 accessServices = False
             else:
                 print("the action you selected is not recognized, try again\n")
-
+    @staticmethod
+    def iterate(dict):#creted to eliminate redundancy in 'registerBirth' and 'registerMarriage'
+        #only dictionaries should be passed to this function.
+        for item in dict:
+            dict[item] = input(f'Enter {item}: ')
+        return dict
     def registerBirth(self):
         # allow registry agent to register a birth
         # perform issue ticket steps
         cursor = sqlCursor.get_instance().get_cursor()
         columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,\
             'm_lname': None,'bdate': None,'bplace': None}
-        for items in columns:
-            columns[items] = input(f'Enter {items}: ')
-        if self.check_parents(columns['f_fname'],columns['f_lname']):#True if father is not in database
+        columns = self.iterate(columns)
+        if self.check_person(columns['f_fname'],columns['f_lname']):#True if father is not in database
             print(f"Enter information about {columns['fname']} {columns['lname']}'s father'")
             columns2 = {'f_bdate': None,'f_bplace': None,'f_address': None,'f_phone': None}
-            for element in columns2:#get father info
-                columns2[element]= input(f'Enter {element}: ')
+            columns2 = self.iterate(columns2)
             try:
                 cursor.execute(f'''INSERT INTO persons VALUES 
                 ('{columns['f_fname']}','{columns['f_lname']}','{columns2['f_bdate']}','{columns2['f_bplace']}','{columns2['f_address']}','{columns2['f_phone']}');''')
                 sqlCursor.get_instance().get_connection().commit()
             except ValueError:
                 print('Integrity Constraint')
-        if self.check_parents(columns['m_fname'],columns['m_lname']):#True if mother is not in database
+        if self.check_person(columns['m_fname'],columns['m_lname']):#True if mother is not in database
             print(f"Enter information about {columns['fname']} {columns['lname']}'s mother'")
             columns3 = {'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
-            for item1 in columns3:#get mother info
-                columns3[item1] = input(f'Enter {item1}: ')
+            columns3 = self.iterate(columns3)
             try:
                 cursor.execute(f'''INSERT INTO persons VALUES 
                 ('{columns['m_fname']}','{columns['m_lname']}','{columns3['m_bdate']}','{columns3['m_bplace']}','{columns3['m_address']}','{columns3['m_phone']}');''')
@@ -125,7 +127,7 @@ class RegistryAgent(User):
         SysCallManager.clearWindow()
     #%%%%%%%
     #The following function can be made into their own seperate file if needed
-    def check_parents(self,p_fname,p_lname):#helper function for registerBirth
+    def check_person(self,p_fname,p_lname):#helper function for registerBirth
         cursor = sqlCursor.get_instance().get_cursor()
         cursor.execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
         output = cursor.fetchone()
@@ -146,12 +148,38 @@ class RegistryAgent(User):
         return cursor.fetchone()[0]
     #%%%%%%%%%
     def registerMarriage(self):
+        cursor = sqlCursor.get_instance().get_cursor()
         # allow registry agent to register a marriage
         # perform issue ticket steps
+        inputs = {'partner1_fname': None,'partner1_lname':None,'partner2_fname': None,'partner2_lname':None}
+        inputs = self.iterate(inputs)
+        regno = UniqueIDManager.getUniqueRegistrationNumber()#generate unique number
+        regdate = self.get_current_date()
+        regplace = User.getUserCity()#get the city of the loged in user
+        if self.check_person(inputs['partner1_fname'],inputs['partner1_lname']):#True if partner_1 is not in database
+            print(f"Enter the following information about {inputs['partner1_fname']} {inputs['partner1_lname']}")
+            columns2 = {'bdate': None,'bplace': None,'address': None,'phone': None}
+            columns2 = self.iterate(columns2)
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{inputs['partner1_fname']}','{inputs['partner1_lname']}','{columns2['bdate']}','{columns2['bplace']}','{columns2['address']}','{columns2['phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except ValueError:
+                print('Integrity Constraint')
+        if self.check_person(inputs['partner2_fname'],inputs['partner2_lname']):#True if partner2 is not in database
+            print(f"Enter the following information about {inputs['partner2_fname']} {inputs['partner2_lname']}")
+            columns3 = {'bdate': None,'bplace': None,'address': None,'phone': None}
+            columns3 = self.iterate(columns3)
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{inputs['partner2_fname']}','{inputs['partner2_lname']}','{columns3['bdate']}','{columns3['bplace']}','{columns3['address']}','{columns3['phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except ValueError:
+                print('Integrity Constraint')
         ##################################################################################
         # register marriage SQL logic goes here
-
-
+        cursor.execute(f"INSERT INTO marriages VALUES ('{regno}','{regdate}','{regplace}','{inputs['partner1_fname']}','{inputs['partner1_lname']}','{inputs['partner2_fname']}','{inputs['partner2_lname']}')")
+        sqlCursor.get_instance().get_connection().commit()
         # end logic
         ##################################################################################
 
@@ -160,7 +188,6 @@ class RegistryAgent(User):
 
         # clear the window again
         SysCallManager.clearWindow()
-
     def renewVehicleRegistration(self):
         # allow registry agent to renew their registration
         # perform issue ticket steps
