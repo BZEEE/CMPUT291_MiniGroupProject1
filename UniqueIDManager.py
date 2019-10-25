@@ -17,7 +17,14 @@ class UniqueIDManager:
             cursor = sqlCursor.get_instance().get_cursor()
             cursor.execute("SELECT max(regno) FROM births;")
             val = cursor.fetchone()
+            '''
             if val != None and val[0] >= 0:
+                copy = val[0] + 1#this is the current regno to be used
+                UniqueIDManager.__regno = val[0] + 2#this is the next regno to be used
+            '''
+            if val[0] == None:
+                None
+            else:
                 copy = val[0] + 1#this is the current regno to be used
                 UniqueIDManager.__regno = val[0] + 2#this is the next regno to be used
         UniqueIDManager.__regno += 1      # increment
