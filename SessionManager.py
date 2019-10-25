@@ -3,11 +3,7 @@ from TrafficOfficer import TrafficOfficer
 from RegistryAgent import RegistryAgent
 from AuthenticationManager import AuthenticationManager
 
-class SessionManager:
-    def __init__(self):
-        #Value of password and Uid will be set after authentication
-        self.validPassword = None 
-        self.validUid = None
+class SessionManager():
     @staticmethod
     def enterSession():
         
@@ -48,8 +44,7 @@ class SessionManager:
                 # return to beginning of authenticate while loop since email is not in database
                 print("uid is not recognized in database, please ensure uid is correct\n")
                 continue
-            validUID = True
-
+            validUID = True 
         print("\r\r\n")
         while not validPassword:
             print("enter your uid: {0}".format(uid))
@@ -65,7 +60,6 @@ class SessionManager:
                 print("password is not correct, please ensure email is correct\n")
                 continue
             validPassword = True
-        self.validPassword = password #saving this to be able to refer to the current user
         userType = AuthenticationManager.getUserType(uid)
         fullname = AuthenticationManager.getUserFullname(uid)
         if (userType == 'r'):

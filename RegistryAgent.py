@@ -2,15 +2,13 @@
 from User import User
 from SysCallManager import SysCallManager
 from cursor import sqlCursor
-from random import randint
-
+from UniqueIDManager import UniqueIDManager
 
 class RegistryAgent(User):
     # inherit from base properties of user
     def __init__(self, uType, name):
         self.userType = uType
         self.fullname = name
-
     def getUserType(self):
         # super().getUserType()
         return self.userType
@@ -73,33 +71,36 @@ class RegistryAgent(User):
     def registerBirth(self):
         # allow registry agent to register a birth
         # perform issue ticket steps
+        cursor = sqlCursor.get_instance().get_cursor()
         columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,'m_lname': None,'bdate': None,'bplace': None,'f_bdate': None,\
         'f_bplace': None,'f_address': None,'f_phone': None,'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
         for items in columns:
-            columns[item] = input(f'Enter {item}: ')
+            columns[items] = input(f'Enter {items}: ')
+        #-----------
+        #test data
+        '''
+        columns = {'fname': 'Ivan','lname': 'Penales','gender': "male",'f_fname': "Benny",'f_lname': "Penales",\
+            'm_fname': "Polly",'m_lname': "Penales",'bdate': "04/15/1997",'bplace': "Phillipines",'f_bdate': "02/15/1969",\
+        'f_bplace': "Phillipines",'f_address': "Phillipines",'f_phone': "403",'m_bdate': "05/11/1969",'m_bplace': "Phillipines",\
+            'm_address': "Phillipines",'m_phone': "913"}
+        '''
+        #----------
         if self.check_parents(columns['f_fname'],columns['f_lname']):#True if father is not in database
-            self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:f_fname,lname:f_lname,f_bdate:f_bdate,f_bplace:f_bplace,f_address:f_address,f_phone:f_phone)",{
-                'f_fname':columns['f_fname'],'f_lname':columns['f_lname'],'f_bdate':columns['f_bdate'],'f_bplace':columns['f_bplace'],'f_address':columns['f_address'],'f_phone':columns['f_phone']})
-            self.conn.get_instance().get_cursor().commit()
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{columns['f_fname']}','{columns['f_lname']}','{columns['f_bdate']}','{columns['f_bplace']}','{columns['f_address']}','{columns['f_phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
         if self.check_parents(columns['m_fname'],columns['m_lname']):#True if mother is not in database
-            self.conn.get_instance().get_cursor().execute("INSERT INTO persons(fname:m_fname,lname:m_lname,m_bdate:m_bdate,m_bplace:m_bplace,m_address:m_address,m_phone:m_phone)",{
-                'm_fname':columns['m_fname'],'m_lname':columns['m_lname'],'m_bdate':columns['m_bdate'],'m_bplace':columns['m_bplace'],'m_address':columns['m_address'],'m_phone':columns['m_phone']})
-            self.conn.get_instance().get_cursor().commit()
-        regno = random.randint(1,100000)
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{columns['m_fname']}','{columns['m_lname']}','{columns['m_bdate']}','{columns['m_bplace']}','{columns['m_address']}','{columns['m_phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
+        regno = UniqueIDManager.getUniqueRegistrationNumber()
         regdate = self.get_current_date()
-        regplace = User.getUserCity
-        while self.check_id(regno):#will check if id already exist
-            regno = random.randint(1,100000)
-        
+        regplace = User.getUserCity()
         ##################################################################################
         # register birt SQL logic goes here
-        self.conn.get_instance().get_cursor().executescript('''INSERT INTO births(
-            regno,fname,lname,regdate,regplace,gender,f_fname.f_lname,m_fname,m_lname
-        );
-        INSERT INTO persons(
-            fname,lname,bdate,bplace,m_address,m_phone
-        );''',{'fname':columns['fname'],'lname':columns['lname'],'regno':columns['regno'],'regdate':columns['regdate'],'regplace':columns['regplace'],'gender':columns['gender'],'f_fname':columns['f_fname'],'f_lname':columns['f_lname'],\
-            'm_fname':columns['m_fname'],'bdate':columns['bdate'],'bplace':columns['bplace'],'m_lname':columns['m_lname'],'m_address':columns['m_address'],'m_phone':columns['m_phone']})
+        cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
+        INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{columns['m_address']}','{columns['m_phone']}');''')
+        sqlCursor.get_instance().get_connection().commit()
         # end logic
         ##################################################################################
 
@@ -111,21 +112,24 @@ class RegistryAgent(User):
     #%%%%%%%
     #The following function can be made into their own seperate file if needed
     def check_parents(self,p_fname,p_lname):#helper function for registerBirth
-        self.conn.get_instance().get_cursor().execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
-        output = self.conn.get_instance().get_cursor().fetchone()
-        if output[0] != None:
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursor.execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
+        output = cursor.fetchone()
+        if output != None:
             return False#need to know what the query returns when it returns an empty tuple
         return True
     def check_id(self,num):#helper function for registerBirth
         #will check if 'num' is already an existing id
-        self.conn.get_instance().get_cursor().execute('SELECT regno FROM births WHERE regno =:num;',{'num':num})
-        output = self.conn.get_instance().get_cursor().fetchone()[0]
-        if output[0] != None:#need to check if sql outputs None for empty tuples
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursor.execute('SELECT regno FROM births WHERE regno =:num;',{'num':num})
+        output = cursor.fetchone()
+        if output != None:#need to check if sql outputs None for empty tuples
             return True#id already exist
         return False
     def get_current_date(self):
-        self.conn.get_instance().get_cursor().execute("SELECT date('now')")
-        return self.conn.get_instance().get_cursor().fetchone()[0]
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursor.execute("SELECT date('now')")
+        return cursor.fetchone()[0]
     #%%%%%%%%%
     def registerMarriage(self):
         # allow registry agent to register a marriage
