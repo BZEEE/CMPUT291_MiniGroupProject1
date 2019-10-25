@@ -72,8 +72,9 @@ class RegistryAgent(User):
         # allow registry agent to register a birth
         # perform issue ticket steps
         cursor = sqlCursor.get_instance().get_cursor()
-        columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,'m_lname': None,'bdate': None,'bplace': None,'f_bdate': None,\
-        'f_bplace': None,'f_address': None,'f_phone': None,'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
+        columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,\
+            'm_lname': None,'bdate': None,'bplace': None,'f_bdate': None,'f_bplace': None,'f_address': None,\
+                'f_phone': None,'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
         for items in columns:
             columns[items] = input(f'Enter {items}: ')
         #-----------
@@ -86,9 +87,12 @@ class RegistryAgent(User):
         '''
         #----------
         if self.check_parents(columns['f_fname'],columns['f_lname']):#True if father is not in database
-            cursor.execute(f'''INSERT INTO persons VALUES 
-            ('{columns['f_fname']}','{columns['f_lname']}','{columns['f_bdate']}','{columns['f_bplace']}','{columns['f_address']}','{columns['f_phone']}');''')
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{columns['f_fname']}','{columns['f_lname']}','{columns['f_bdate']}','{columns['f_bplace']}','{columns['f_address']}','{columns['f_phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except ValueError:
+                print('Integrity Constraint')
         if self.check_parents(columns['m_fname'],columns['m_lname']):#True if mother is not in database
             cursor.execute(f'''INSERT INTO persons VALUES 
             ('{columns['m_fname']}','{columns['m_lname']}','{columns['m_bdate']}','{columns['m_bplace']}','{columns['m_address']}','{columns['m_phone']}');''')
@@ -98,9 +102,12 @@ class RegistryAgent(User):
         regplace = User.getUserCity()
         ##################################################################################
         # register birt SQL logic goes here
-        cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
-        INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{columns['m_address']}','{columns['m_phone']}');''')
-        sqlCursor.get_instance().get_connection().commit()
+        try:
+            cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
+            INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{columns['m_address']}','{columns['m_phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
+        except ValueError:
+            print('Integrity Constraint')
         # end logic
         ##################################################################################
 

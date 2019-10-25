@@ -1,4 +1,4 @@
-
+from cursor import sqlCursor
 
 class UniqueIDManager:
     __tno = 0
@@ -12,7 +12,14 @@ class UniqueIDManager:
     
     @staticmethod
     def getUniqueRegistrationNumber():
-        copy = UniqueIDManager.__regno    # make a copy of the registration number counter
+        copy = UniqueIDManager.__regno   # make a copy of the registration number counter
+        if copy == 0: #query to see if theres a registration number in the database already
+            cursor = sqlCursor.get_instance().get_cursor()
+            cursor.execute("SELECT max(regno) FROM births;")
+            val = cursor.fetchone()
+            if val != None and val[0] >= 0:
+                copy = val[0] + 1#this is the current regno to be used
+                UniqueIDManager.__regno = val[0] + 2#this is the next regno to be used
         UniqueIDManager.__regno += 1      # increment
         return copy       # return copy of regno before it was incremented
 
