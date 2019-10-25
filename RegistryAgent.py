@@ -182,19 +182,48 @@ class RegistryAgent(User):
         sqlCursor.get_instance().get_connection().commit()
         # end logic
         ##################################################################################
-
         print("successfully registered marriage\n")
         input("press Enter to return to Dashboard")
-
         # clear the window again
         SysCallManager.clearWindow()
+    @staticmethod
+    def reg_exist(regno):#Will return True if registration exist
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursor.execute("SELECT expiry FROM registrations WHERE regno=:regno;",{'regno':regno})
+        if cursor.fetchone() == None:
+            return False
+        return True
     def renewVehicleRegistration(self):
         # allow registry agent to renew their registration
         # perform issue ticket steps
-
+        cursor = sqlCursor.get_instance().get_cursor()
+        regno = input("Enter registry number: ")
+        exist = not(self.reg_exist(regno))
+        while exist:# check if registraion num exist
+            print('Registration not found')
+            option = input("Enter (1) to enter a different registry number\nEnter (2) to return to dashboard")
+            if option == '1':
+                exist = not(self.reg_exist(regno))
+            else:
+                SysCallManager.ReturnToDashboard()
+        cursor.execute("SELECT expiry FROM registrations WHERE regno=:regno;",{'regno':regno})
+        cur_expiry = cursor.fetchone()[0]
+        cursor.execute(f"SELECT strftime('%s','now') - strftime('%s','{cur_expiry}');")#calculating time difference in unix timestamp
         ##################################################################################
         # renew vehicle registration SQL logic goes here
-
+        if cursor.fetchone()[0] < 0:#registration is not expired
+            new_date = str(int(cur_expiry[:4])+1)+(cur_expiry[4:])
+            #slef.get_current_date returns an integer so need to convert it to a string to concatenate
+            #will concatante first 4 letters of the string, which is the year, turn it into an integer add1 to it and then
+            #turn it back to a string and concatinate it back to the rest of the dates.
+            cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
+            sqlCursor.get_instance().get_connection().commit()
+        else:#registration is expired
+            new_date = str(int(str(self.get_current_date())[:4])+1)+(cur_expiry[4:])
+            #will concatante first 4 letters of the string, which is the year, turn it into an integer add1 to it and then
+            #turn it back to a string and concatinate it back to the rest of the dates.
+            cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
+            sqlCursor.get_instance().get_connection().commit()
 
         # end logic
         ##################################################################################
