@@ -22,7 +22,7 @@ class User:
         pass
 
     def displayFormattedQueryResponse(self, queryResponse, start, end, columnTitles):
-        maxLength = 15
+        maxLength = 20
         for title in columnTitles:
             i = len(title)
             print(" | ", end="")

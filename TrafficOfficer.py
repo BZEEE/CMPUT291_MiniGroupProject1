@@ -72,7 +72,7 @@ class TrafficOfficer(User):
         cursorResponse = cursor.execute(
             "Select r.fname, r.lname, v.make, v.model, v.year, v.color " \
             "From registrations As r, vehicles As v " \
-            "Where r.regno=? And r.vin = v.vin", (regno,)
+            "Where r.regno=? And r.vin = v.vin COLLATE NOCASE", (regno,)
         )
         conn.commit()
         cursorResponse = cursor.fetchall()
@@ -110,54 +110,52 @@ class TrafficOfficer(User):
         conn = sqlCursor.get_instance().get_connection()
         ##################################################################################
         # issue ticket SQL logic goes here
-        carMakes = input("enter car make(s), separate each by a space").split(" ")
-        carModels = input("enter car model(s), separate each by a space").split(" ")
-        carYears = input("enter car year(s), separate each by a space").split(" ")
-        carColors = input("enter car color(s), separate each by a space").split(" ")
-        carPlates = input("enter car plate(s), separate each by a space").split(" ")
+        carMakes = input("enter car make(s), separate each by a space: ").split(" ")
+        carModels = input("enter car model(s), separate each by a space: ").split(" ")
+        carYears = input("enter car year(s), separate each by a space: ").split(" ")
+        carColors = input("enter car color(s), separate each by a space: ").split(" ")
+        carPlates = input("enter car plate(s), separate each by a space: ").split(" ")
 
-        query = "Select r.fname, r.lname, v.make, v.model, v.year, v.color, r.plate, r.regdate, r.expiry" \
-                "From registrations As r, vehicles As v" \
+        query = "Select r.fname, r.lname, v.make, v.model, v.year, v.color, r.plate, r.regdate, r.expiry " \
+                "From registrations As r, vehicles As v " \
                 "Where r.vin = v.vin And "
         query += "("
         for make in range(len(carMakes)):
             if (make == 0):
-                query += "v.make = " + carMakes[make]
+                query += "v.make = '{}'".format(carMakes[make])
             else:
-                query += " Or {}".format("v.make = " + carMakes[make])
+                query += " Or '{}'".format("v.make = " + carMakes[make])
         query += ") And ("
         for model in range(len(carModels)):
             if (model == 0):
-                query += "v.model = " + carModels[model]
+                query += "v.model = '{}'".format(carModels[model])
             else:
-                query += "Or {}".format("v.make = " + carModels[model])
+                query += "Or '{}'".format("v.make = " + carModels[model])
         query += ") And ("
         for year in range(len(carYears)):
             if (year == 0):
-                query += "v.year = " + carYears[year]
+                query += "v.year = '{}'".format(carYears[year])
             else:
-                query += "Or {}".format("v.year = " + carYears[year])
+                query += "Or '{}'".format("v.year = " + carYears[year])
         query += ") And ("
         for color in range(len(carColors)):
             if (color == 0):
-                query += "v.color = " + carColors[color]
+                query += "v.color = '{}'".format(carColors[color])
             else:
-                query += "Or {}".format("v.color = " + carColors[color])
+                query += "Or '{}'".format("v.color = " + carColors[color])
         query += ") And ("
         for plate in range(len(carPlates)):
             if (plate == 0):
-                query += "r.plate = " + carPlates[plate]
+                query += "r.plate = '{}'".format(carPlates[plate])
             else:
-                query += "Or {}".format("r.plate = " + carPlates[plate])
-        query += ")"
-
-        cursor.execute( query )
+                query += " Or '{}'".format("r.plate = " + carPlates[plate])
+        query += ") COLLATE NOCASE"
+        cursor.execute(query)
         conn.commit()
 
         cursorResponse = cursor.fetchall()
 
-        if (cursorResponse != None):
-            
+        if (cursorResponse != None or len(cursorResponse) == 0):
             if (len(cursorResponse) > 4):
                 # show make, model, year, color, and plate of all matches
                 # let user select one
@@ -176,11 +174,12 @@ class TrafficOfficer(User):
                 # show fullname, make, model, year, color, plate, regdate, and expiry date
                 self.displayFormattedQueryResponse(cursorResponse, 0, 8, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
         else:
+            self.displayFormattedQueryResponse([], 0, 8, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
             print("Could not find any matches")
         # end logic
         ##################################################################################
 
         # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
 
         
