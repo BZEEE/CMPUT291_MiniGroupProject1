@@ -4,6 +4,7 @@ from SysCallManager import SysCallManager
 from cursor import sqlCursor
 from InputFormatter import InputFormatter
 from UniqueIDManager import UniqueIDManager
+import datetime
 
 
 class TrafficOfficer(User):
@@ -83,6 +84,8 @@ class TrafficOfficer(User):
             response = InputFormatter.ensureValidInput("proceed to issue ticket? (Y/N): ", ["y", "Y", "n", "N"])
             if (response.upper() == "Y"):
                 violationDate = input("enter violation date: ")
+                if (violationDate == ""):
+                    violationDate = datetime.date.today().strftime("%Y-%m-%d")
                 violationMessage = input("enter reason for violation: ")
                 fineAmount = input("enter fine amount: ")
                 tno = UniqueIDManager.getInstance().getUniqueTicketNumber()
@@ -122,39 +125,39 @@ class TrafficOfficer(User):
         query += "("
         for make in range(len(carMakes)):
             if (make == 0):
-                query += "v.make = '{}'".format(carMakes[make])
+                query += "v.make='{}'".format(carMakes[make])
             else:
-                query += " Or '{}'".format("v.make = " + carMakes[make])
+                query += " Or v.make='{}'".format(carMakes[make])
         query += ") And ("
         for model in range(len(carModels)):
             if (model == 0):
-                query += "v.model = '{}'".format(carModels[model])
+                query += "v.model='{}'".format(carModels[model])
             else:
-                query += "Or '{}'".format("v.make = " + carModels[model])
+                query += "Or v.model='{}'".format(carModels[model])
         query += ") And ("
         for year in range(len(carYears)):
             if (year == 0):
-                query += "v.year = '{}'".format(carYears[year])
+                query += "v.year='{}'".format(carYears[year])
             else:
-                query += "Or '{}'".format("v.year = " + carYears[year])
+                query += "Or v.year='{}'".format(carYears[year])
         query += ") And ("
         for color in range(len(carColors)):
             if (color == 0):
-                query += "v.color = '{}'".format(carColors[color])
+                query += "v.color='{}'".format(carColors[color])
             else:
-                query += "Or '{}'".format("v.color = " + carColors[color])
+                query += "Or v.color='{}'".format(carColors[color])
         query += ") And ("
         for plate in range(len(carPlates)):
             if (plate == 0):
-                query += "r.plate = '{}'".format(carPlates[plate])
+                query += "r.plate='{}'".format(carPlates[plate])
             else:
-                query += " Or '{}'".format("r.plate = " + carPlates[plate])
+                query += " Or r.plate='{}'".format(carPlates[plate])
         query += ") COLLATE NOCASE"
         cursor.execute(query)
         conn.commit()
 
         cursorResponse = cursor.fetchall()
-
+        
         if (cursorResponse != None or len(cursorResponse) == 0):
             if (len(cursorResponse) > 4):
                 # show make, model, year, color, and plate of all matches
@@ -162,12 +165,12 @@ class TrafficOfficer(User):
                 self.displayFormattedQueryResponse(cursorResponse, 2, 6, ["make", "model", "year", "color", "plate"])
                 possibleInputs = []
                 for i in range(len(cursorResponse)):
-                    print("enter ({0}) to select {1} {2} {3}".format( i + 1, cursorResponse[i][4]), cursorResponse[i][2], cursorResponse[i][3])
-                    possibleInputs.append(i + 1)
+                    print("enter ({0}) to select {1} {2} {3}".format( i + 1, cursorResponse[i][4], cursorResponse[i][2], cursorResponse[i][3]))
+                    possibleInputs.append(str(i + 1))
                 selection = InputFormatter.ensureValidInput("Select one of the options above: ", possibleInputs)
                 
-                index = selection - 1
-                self.displayFormattedQueryResponse([cursorResponse[index]], 0, 0, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
+                index = int(selection) - 1
+                self.displayFormattedQueryResponse([cursorResponse[index]], 0, 8, ["first name", "last name", "make", "model", "year", "color", "plate", "registration date", "expiry"])
                 
             else:
                 # total matches returned from query is leass than 4

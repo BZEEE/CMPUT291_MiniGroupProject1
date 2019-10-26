@@ -30,10 +30,11 @@ insert into marriages values (200, '2019-07-13', 'Winterfell, Westeros', 'John',
 
 insert into vehicles values ('U100', 'Chevrolet', 'Camaro', 1969, 'red');
 insert into vehicles values ('U101', 'Mercedes', 'SL 230', 1964, 'black');
-insert into vehicles values ('U102', 'Chevrolet', 'Camaro', 1969, 'red');
+insert into vehicles values ('U102', 'Chevrolet', 'Camaro', 1968, 'red');
 insert into vehicles values ('U103', 'Mercedes', 'SL 230', 1964, 'black');
-
-insert into vehicles values ('U104', 'Lamborghini', 'Aventadpr', 2018, 'black');
+insert into vehicles values ('U104', 'Chevrolet', 'Camaro', 1967, 'red');
+insert into vehicles values ('U105', 'Chevrolet', 'Camaro', 1966, 'red');
+insert into vehicles values ('U106', 'Chevrolet', 'Camaro', 1965, 'red');
 
 insert into registrations values (0, '2008-05-26','2021-05-25', 'WCing','U100', 'John', 'Snow');
 insert into registrations values (1, '2009-01-16','2022-01-15', 'WCing','U101', 'Ned', 'Stark');
@@ -41,8 +42,8 @@ insert into registrations values (3, '2010-05-26','2021-05-25', 'WCing','U102', 
 insert into registrations values (4, '2010-01-16','2022-01-15', 'WCing','U103', 'Arya', 'Stark');
 
 insert into registrations values (5, '2012-05-26','2021-05-25', 'WCing','U104', 'Jamie', 'Lannister');
-insert into registrations values (6, '2013-01-16','2022-01-15', 'WCing','U104', 'Tyrian', 'Lannister');
-insert into registrations values (7, '2014-05-26','2021-05-25', 'WCing','U104', 'Rob', 'Stark');
-insert into registrations values (8, '2015-01-16','2022-01-15', 'WCing','U104', 'Sansa', 'Stark');
+insert into registrations values (6, '2013-01-16','2022-01-15', 'WCing','U105', 'Tyrian', 'Lannister');
+insert into registrations values (7, '2014-05-26','2021-05-25', 'WCing','U106', 'Rob', 'Stark');
+insert into registrations values (8, '2015-01-16','2022-01-15', 'WCing','U105', 'Sansa', 'Stark');
 insert into registrations values (9, '2016-05-26','2021-05-25', 'WCing','U104', 'Daenerys', 'Targaryan');
 
