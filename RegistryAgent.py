@@ -272,30 +272,36 @@ class RegistryAgent(User):
         if payment <= 0:
             print('Payment must be greater than 0$')
             SysCallManager.ReturnToDashboard()
+            return
         cursor.execute(f"SELECT fine FROM tickets WHERE tno={tno};")
         fine = cursor.fetchone()
-        print(fine)
         if fine == None:#error check if ticket is valid
             print('Ticket does not exist')
             SysCallManager.ReturnToDashboard()
-        fine = cursor.fetchone()[0]
+            return
+        fine = fine[0]
         if payment > int(fine):#error check if the payment is bigger than the entire fine
             print('Payment exceeds fine')
             SysCallManager.ReturnToDashboard()
-        cursor.execute(f"SELECT sum(amount) FROM payments WHERE tno={tno}")
-        cur_payments = cursor.fetchall()
+            return
+        cursor.execute("SELECT strftime('%Y-%m-%d %H:%M:%S','now');")#this will give the current date withhours,minutes, and seconds
+        cur_date = cursor.fetchone()[0]
         ##################################################################################
         # process payment SQL logic goes here
+        cursor.execute(f"SELECT sum(amount) FROM payments WHERE tno={tno} GROUP BY tno;")
+        cur_payments = cursor.fetchone()
         if cur_payments == None:#True if no payments have been made yet
-            cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{self.get_current_date()}',{payment});")
+            cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
             sqlCursor.get_instance().get_connection().commit()
         else:
-            if (int(cur_payments[0]) + payment) <= fine:
-                cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{self.get_current_date()}',{payment});")
+            cur_payments = cur_payments[0]
+            if (int(cur_payments) + payment) <= fine:
+                cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
                 sqlCursor.get_instance().get_connection().commit()
             else:
                 print('sum of payments exceeds fine')
                 SysCallManager.ReturnToDashboard()
+                return
         # end logic
         ##################################################################################
 
