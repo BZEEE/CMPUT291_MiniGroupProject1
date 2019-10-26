@@ -198,7 +198,7 @@ class RegistryAgent(User):
         # perform issue ticket steps
         cursor = sqlCursor.get_instance().get_cursor()
         regno = input("Enter registry number: ")
-        exist = not(self.reg_exist(regno))
+        exist = not(self.reg_exist(regno))#
         while exist:# check if registraion num exist
             print('Registration not found')
             option = input("Enter (1) to enter a different registry number\nEnter (2) to return to dashboard")
@@ -310,21 +310,66 @@ class RegistryAgent(User):
 
         # clear the window again
         SysCallManager.clearWindow()
+    @staticmethod
+    def query_check(query,error_promt):#this function checks if nothing was found by the query item is the attributes in select clause of the query
+        if query == None:
+            print(error_promt)
+            SysCallManager.ReturnToDashboard() 
+            return 
 
     def getDriverAbstract(self):
         # allow registry agent to get a driver abstract
         # perform issue ticket steps
-
+        cursor = sqlCursor.get_instance().get_cursor()
+        fname = input('Enter first name: ')
+        lname = input('Enter last name: ')
         ##################################################################################
         # get driver abstract SQL logic goes here
-
-
+        cursor.execute(f'''
+                        SELECT COUNT(*),sum(points) FROM demeritNotices d
+                        WHERE d.fname = '{fname}' AND d.lname = '{lname}';''')
+        num_dnotice = cursor.fetchone()
+        if num_dnotice[1] == None: num_dnotice[1] = 0#change the sum of total demerit points to 0 from None if there are no demerit points
+        cursor.execute(f'''
+                        SELECT sum(points) FROM demeritNotices 
+                        WHERE fname = '{fname}' AND lname = '{lname}'
+                        AND  (julianday('now')-julianday(ddate)) <= 730;
+                        ''')
+        num_points = cursor.fetchone()
+        if num_points[0] == None: num_points[0] = 0#change the sum of total demerit points to 0 from None if there are no demerit points
+        cursor.execute(f'''SELECT t.tno,t.vdate,t.violation,t.fine,r.regno,v.make,v.model FROM tickets t,registrations r,vehicles v 
+                        WHERE r.fname = '{fname}' AND r.lname = '{lname}' AND r.regno = t.regno
+                        AND r.vin = v.vin ORDER BY t.vdate DESC;''')
+        tickets = cursor.fetchall()
+        if tickets == None:tickets=0
+        print(f"-----{fname} {lname}'s Driver Abstract-----\nnumber of tickets: {len(tickets)}\nnumber of demerit notices: {num_dnotice[0]}\nnumber of demeritpoints within the past 2 years: {num_points[0]}\ntotal number of demerit points: {num_dnotice[0]}")
+        option = input(f"view {fname} {lname}'s tickets (Y/N)?: ")
+        start = 0
+        end = 0
+        if len(tickets) >= 5:
+            end = 6
+        else:
+            end = len(tickets)
+        while option != 'N':
+            for item in range(start,end):
+                print(f"ticket number: {tickets[item][0]}\nticket date: {tickets[item][1]}\nticket description: {tickets[item][2]}\nticket fine: {tickets[item][3]}\nvehicle registration:{tickets[item][4]}\nvehicle make: {tickets[item][5]}\nvehicle model: {tickets[item][6]}",end='')
+                if len(tickets) > (end+4):
+                    option = input('View more tickets (Y/N): ')
+                    if option == 'N':break#breaks out of inner loop to falsify the while loop
+                    start = end
+                    end += 5
+                elif len(tickets) == end:#at the last ticket
+                    option = 'N'
+                    break
+                else:#there are >5 tickets remaining
+                    start = end
+                    end = len(tickets)
+        print()
         # end logic
         ##################################################################################
-
         print("successfully retrieved driver abstract\n")
         input("press Enter to return to Dashboard")
-
         # clear the window again
         SysCallManager.clearWindow()
+        return
         
