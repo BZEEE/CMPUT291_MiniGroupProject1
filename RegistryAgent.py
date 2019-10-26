@@ -100,7 +100,7 @@ class RegistryAgent(User):
                 sqlCursor.get_instance().get_connection().commit()
             except ValueError:
                 print('Integrity Constraint')
-        regno = UniqueIDManager.getUniqueRegistrationNumber()#generate unique number
+        regno = UniqueIDManager.getUniqueRegistrationNumber('births')#generate unique number
         regdate = self.get_current_date()
         regplace = User.getUserCity()#get the city of the loged in user
         #getting the mothers phone and address
@@ -153,7 +153,7 @@ class RegistryAgent(User):
         # perform issue ticket steps
         inputs = {'partner1_fname': None,'partner1_lname':None,'partner2_fname': None,'partner2_lname':None}
         inputs = self.iterate(inputs)
-        regno = UniqueIDManager.getUniqueRegistrationNumber()#generate unique number
+        regno = UniqueIDManager.getUniqueRegistrationNumber('marriages')#generate unique number
         regdate = self.get_current_date()
         regplace = User.getUserCity()#get the city of the loged in user
         if self.check_person(inputs['partner1_fname'],inputs['partner1_lname']):#True if partner_1 is not in database
@@ -235,19 +235,32 @@ class RegistryAgent(User):
         SysCallManager.clearWindow()
 
     def processBillOfSale(self):
+        cursor = sqlCursor.get_instance().get_cursor()
         # allow rgistry agent to process a bill of sale
         # perform issue ticket steps
-
+        inputs = {'vin_of_car':None,'firstname_of_current_owner':None,\
+            'lastname_of_current_owner':None,'firstname_of_new_owner':None,\
+                'lastname_of_new_owner':None,'New_plate_number':None}
+        inputs = self.iterate(inputs)
+        cursor.execute(f"SELECT fname,lname FROM registrations WHERE vin='{inputs['vin_of_car']}';")
+        owner = cursor.fetchone() 
+        if owner == None or (owner[0] != inputs['firstname_of_current_owner'] and owner[1] != inputs['lastname_of_current_owner']):
+            #This will check if the most recent owner of the vehicle is the inputed current owner and if it isnt user will be returned to Dashboard
+            print(f"The inputed vehicle with the vin number {inputs['vin_of_car']}is not currently owned by {inputs['firstname_of_current_owner']} {inputs['lastname_of_current_owner']}")
+            SysCallManager.ReturnToDashboard()
+        regno = UniqueIDManager.getUniqueRegistrationNumber('registrations')#generate unique number
+        regdate = str(self.get_current_date())
         ##################################################################################
         # process bill of sale SQL logic goes here
-
-
+        cursor.executescript(f'''UPDATE registrations SET expiry = '{self.get_current_date()}' WHERE vin = '{inputs['vin_of_car']}';
+                                INSERT INTO registrations VALUES ('{regno}','{regdate}','{str(int(regdate[:4])+1)+regdate[4:]}',\
+                                    '{inputs['New_plate_number']}','{inputs['vin_of_car']}','{inputs['firstname_of_new_owner']}',\
+                                        '{inputs['lastname_of_new_owner']}');''')
+        sqlCursor.get_instance().get_connection().commit()
         # end logic
         ##################################################################################
-
         print("successfully processed bill of sale\n")
         input("press Enter to return to Dashboard")
-
         # clear the window again
         SysCallManager.clearWindow()
 

@@ -11,17 +11,13 @@ class UniqueIDManager:
         return copy     # return copy of tno before it was incremented
     
     @staticmethod
-    def getUniqueRegistrationNumber():
+    def getUniqueRegistrationNumber(table):
+        #pass in the specific table which we are creating a new id in in order to make sure that it is unique in that table
         copy = UniqueIDManager.__regno   # make a copy of the registration number counter
         if copy == 0: #query to see if theres a registration number in the database already
             cursor = sqlCursor.get_instance().get_cursor()
-            cursor.execute("SELECT max(regno) FROM births;")
+            cursor.execute(f"SELECT max(regno) FROM {table};")
             val = cursor.fetchone()
-            '''
-            if val != None and val[0] >= 0:
-                copy = val[0] + 1#this is the current regno to be used
-                UniqueIDManager.__regno = val[0] + 2#this is the next regno to be used
-            '''
             if val[0] == None:
                 None
             else:
