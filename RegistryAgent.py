@@ -120,13 +120,13 @@ class RegistryAgent(User):
         #cont must be a dictionary and atr must be a string
         #this function will repromt the user and possibly mutate 'cont' object
         #this is a helper function for inp_check
-        option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard")
+        option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard: ")
         while option.lower() != 'n': 
             if option.lower() == 'y':
-                cont[attr] = input(f"Enter new {attr}")
+                cont[attr] = input(f"Enter new {attr}: ")
                 break
-            option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard")
-            cont[attr] = ['']#if the outside loop from 'inp_check' reads this it will break and return to dashboard  
+            option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard: ")
+        if option.lower() == 'n':cont[attr] = ['']#if the outside loop from 'inp_check' reads this it will break and return to dashboard  
         return
     @staticmethod
     def date_form(inp):#this is a helper function for 'is_date' that checks the first ten characters of a date.
