@@ -12,11 +12,9 @@ class RegistryAgent(User):
     def getUserType(self):
         # super().getUserType()
         return self.userType
-
     def getUserFullName(self):
         # super().getUserFullName()
         return self.fullname
-
     def showGreeting(self):
         header = "###################################################################################"
         greeting = " Welcome, " + self.fullname + " "
@@ -67,69 +65,99 @@ class RegistryAgent(User):
                 accessServices = False
             else:
                 print("the action you selected is not recognized, try again\n")
+    #=================================================================================
+    #THE FOLLOWING METHODS ARE FOR ERROR CHECKING AND ARE MODULAR ENOUGH TO EXIST IN A FILE OF ITS OWN
     @staticmethod
-    def iterate(dict):#creted to eliminate redundancy in 'registerBirth' and 'registerMarriage'
+    def iterate(dict):#created to eliminate redundancy 
         #only dictionaries should be passed to this function.
         for item in dict:
             dict[item] = input(f'Enter {item}: ')
         return dict
-    def registerBirth(self):
-        # allow registry agent to register a birth
-        # perform issue ticket steps
-        cursor = sqlCursor.get_instance().get_cursor()
-        columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,\
-            'm_lname': None,'bdate': None,'bplace': None}
-        columns = self.iterate(columns)
-        if self.check_person(columns['f_fname'],columns['f_lname']):#True if father is not in database
-            print(f"Enter information about {columns['fname']} {columns['lname']}'s father'")
-            columns2 = {'f_bdate': None,'f_bplace': None,'f_address': None,'f_phone': None}
-            columns2 = self.iterate(columns2)
-            try:
-                cursor.execute(f'''INSERT INTO persons VALUES 
-                ('{columns['f_fname']}','{columns['f_lname']}','{columns2['f_bdate']}','{columns2['f_bplace']}','{columns2['f_address']}','{columns2['f_phone']}');''')
-                sqlCursor.get_instance().get_connection().commit()
-            except ValueError:
-                print('Integrity Constraint')
-        if self.check_person(columns['m_fname'],columns['m_lname']):#True if mother is not in database
-            print(f"Enter information about {columns['fname']} {columns['lname']}'s mother'")
-            columns3 = {'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
-            columns3 = self.iterate(columns3)
-            try:
-                cursor.execute(f'''INSERT INTO persons VALUES 
-                ('{columns['m_fname']}','{columns['m_lname']}','{columns3['m_bdate']}','{columns3['m_bplace']}','{columns3['m_address']}','{columns3['m_phone']}');''')
-                sqlCursor.get_instance().get_connection().commit()
-            except ValueError:
-                print('Integrity Constraint')
-        regno = UniqueIDManager.getUniqueRegistrationNumber('births')#generate unique number
-        regdate = self.get_current_date()
-        regplace = User.getUserCity()#get the city of the loged in user
-        #getting the mothers phone and address
-        cursor.execute("SELECT address,phone FROM persons WHERE fname=:m_fname AND lname=:m_lname;",\
-            {'m_fname':columns['m_fname'],'m_lname':columns['m_lname']})
-        m_info = cursor.fetchone()
-        m_address = m_info[0]#mothers address
-        m_phone = m_info[1]#mothers phone number
-        ##################################################################################
-        # register birt SQL logic goes here
-        try:
-            cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
-            INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{m_address}','{m_phone}');''')
-            sqlCursor.get_instance().get_connection().commit()
-        except ValueError:
-            print('Integrity Constraint')
-        # end logic
-        ##################################################################################
-
-        print("successfully registered birth\n")
-        input("press Enter to return to Dashboard")
-
-        # clear the window again
-        SysCallManager.clearWindow()
-    #%%%%%%%
-    #The following function can be made into their own seperate file if needed
+    @staticmethod
+    def is_string(inp):#checks if input is string
+        #returns true if 'inp' is a string
+        for item in inp:
+            if item.isdigit():
+                return False
+        return True
+    @staticmethod
+    def is_phone(inp):#checks if phone number is properly formatted
+        if (inp.replace('-','')).isdigit():return True
+        #the '-' is simply removed and the string is supposed to only contain digits.
+        else:return False
+    @staticmethod
+    def is_date(inp):#checks date format is correct
+        if len(inp) == 10:# this means that the date format is of the form 'YYYY-MM-DD'
+            if RegistryAgent.date_form(inp):return True
+            return False
+        elif len(inp) == 19:#date might include the seconds and hour hence its of the form 'YYYY-MM-DD HH:MM:SS'
+            inp = inp.strip()#take out all the spaces
+            if RegistryAgent.date_form(inp):#will return True if the first 10 characters of date is correct
+                for item in range(10,18):
+                    if item == 13 or item == 16:
+                        if inp[item] == ':':continue
+                        else:return False
+                    else:#everything that reaches this block must be a digit
+                        if (inp[item]).isdigit():continue
+                        else:return False
+                return True
+            else:return False
+        else:return False#if date length is not 10 or 19 then it is incorrect
+    @staticmethod
+    def inp_check(cont,attr,prop_form):#this function is to make sure that the user enters a correct format when being re_prompt
+        #prop_form is a function
+        output = True
+        while not(prop_form(cont[attr])):#prop_form is one of the four functions above
+            #and cont[attr] is the inproperly formated input
+            if isinstance(cont[attr],list):#proper input can be never be a list since out database only accepts int,char, and date
+                SysCallManager.ReturnToDashboard()
+                output = False
+                break
+            RegistryAgent.re_input(cont,attr)
+        return output#need to return a boolean so we can terminate the outer function if needed
+    @staticmethod
+    def re_input(cont,attr):#container is where the data is saved 
+        #cont must be a dictionary and atr must be a string
+        #this function will repromt the user and possibly mutate 'cont' object
+        #this is a helper function for inp_check
+        option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard")
+        while option.lower() != 'n': 
+            if option.lower() == 'y':
+                cont[attr] = input(f"Enter new {attr}")
+                break
+            option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard")
+            cont[attr] = ['']#if the outside loop from 'inp_check' reads this it will break and return to dashboard  
+        return
+    @staticmethod
+    def date_form(inp):#this is a helper function for 'is_date' that checks the first ten characters of a date.
+        for item in range(0,10):
+                if item == 4 or item == 7:#inp[4] and inp[7] are supposed t be '-' if its in the proper format
+                    if inp[item] == '-':continue
+                    else:return False
+                else:#everything that reaches this block must be a digit
+                    if inp[item].isdigit():continue
+                    else:return False
+        return True
+    @staticmethod
+    def iterate_check(inp,prop_form):
+        #inp is the dictionary object containing inputs from the user
+        #prop_form is a list object containing what formats should be inserted to sqlite
+        keys = list(inp.keys())#list of dictionary keys which are columns
+        for item in range(0,len(inp)):#inp and prop_form are indexed so that the 
+            #index of the 'proper format' in prop_form corresponds to the proper format of
+            #the user's input contained in 'inp'.
+            if prop_form[item] == 'str':
+                if RegistryAgent.inp_check(inp,keys[item],RegistryAgent.is_string) == False:return False
+            elif prop_form[item] == 'phone':
+                if RegistryAgent.inp_check(inp,keys[item],RegistryAgent.is_phone) == False:return False
+            elif prop_form[item] == 'date':
+                if RegistryAgent.inp_check(inp,keys[item],RegistryAgent.is_date) == False:return False
+    #=================================================================================
+    #================================================================================
+    #THE FOLLOWING ARE HELPER FUNCTIONS
     def check_person(self,p_fname,p_lname):#helper function for registerBirth
         cursor = sqlCursor.get_instance().get_cursor()
-        cursor.execute('SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;',{"p_fname":p_fname,"p_lname":p_lname})
+        cursor.execute("SELECT fname,lname FROM persons WHERE fname=:p_fname AND lname=:p_lname;",{"p_fname":p_fname,"p_lname":p_lname})
         output = cursor.fetchone()
         if output != None:
             return False#need to know what the query returns when it returns an empty tuple
@@ -146,36 +174,96 @@ class RegistryAgent(User):
         cursor = sqlCursor.get_instance().get_cursor()
         cursor.execute("SELECT date('now')")
         return cursor.fetchone()[0]
-    #%%%%%%%%%
+    @staticmethod
+    def reg_exist(regno):#Will return True if registration exist
+        cursor = sqlCursor.get_instance().get_cursor()
+        cursor.execute("SELECT expiry FROM registrations WHERE regno=:regno;",{'regno':regno})
+        if cursor.fetchone() == None:
+            return False
+        return True
+    @staticmethod
+    def query_check(query,error_promt):#this function checks if nothing was found by the query item is the attributes in select clause of the query
+        if query == None:
+            print(error_promt)
+            SysCallManager.ReturnToDashboard() 
+            return 
+    #====================================================================
+    def registerBirth(self):
+        # allow registry agent to register a birth
+        # perform issue ticket steps
+        cursor = sqlCursor.get_instance().get_cursor()
+        columns = {'fname': None,'lname': None,'gender': None,'f_fname': None,'f_lname': None,'m_fname': None,\
+            'm_lname': None,'bdate': None,'bplace': None}
+        columns = self.iterate(columns)#asks for user inputs
+        prop_form = ['str','str','str','str','str','str','str','date','str']#error checking
+        if self.iterate_check(columns,prop_form) == False:return#is this is true it means user returned to dashboard
+        if self.check_person(columns['f_fname'],columns['f_lname']):#True if father is not in database
+            print(f"Enter information about {columns['fname']} {columns['lname']}'s father'")
+            columns2 = {'f_bdate': None,'f_bplace': None,'f_address': None,'f_phone': None}
+            columns2 = self.iterate(columns2)#asks for user inputs
+            prop_form = ['date','str','None','phone']#error checking
+            if self.iterate_check(columns2,prop_form) == False:return#is this is true it means user returned to dashboard
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{columns['f_fname']}','{columns['f_lname']}','{columns2['f_bdate']}','{columns2['f_bplace']}','{columns2['f_address']}','{columns2['f_phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
+        if self.check_person(columns['m_fname'],columns['m_lname']):#True if mother is not in database
+            print(f"Enter information about {columns['fname']} {columns['lname']}'s mother'")
+            columns3 = {'m_bdate': None,'m_bplace': None,'m_address': None,'m_phone': None}
+            columns3 = self.iterate(columns3)#asks for user inputs
+            prop_form = ['date','str','None','phone']#error checking
+            if self.iterate_check(columns3,prop_form) == False:return#is this is true it means user returned to dashboard
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{columns['m_fname']}','{columns['m_lname']}','{columns3['m_bdate']}','{columns3['m_bplace']}','{columns3['m_address']}','{columns3['m_phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
+        regno = UniqueIDManager.getUniqueRegistrationNumber('births')#generate unique number
+        regdate = self.get_current_date()
+        regplace = User.getUserCity()#get the city of the loged in user
+        #getting the mothers phone and address
+        cursor.execute("SELECT address,phone FROM persons WHERE fname=:m_fname AND lname=:m_lname;",\
+            {'m_fname':columns['m_fname'],'m_lname':columns['m_lname']})
+        m_info = cursor.fetchone()
+        m_address = m_info[0]#mothers address
+        m_phone = m_info[1]#mothers phone number
+        ##################################################################################
+        # register birt SQL logic goes here
+        cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
+        INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{m_address}','{m_phone}');''')
+        sqlCursor.get_instance().get_connection().commit()
+        # end logic
+        ##################################################################################
+        print("successfully registered birth\n")
+        input("press Enter to return to Dashboard")
+        # clear the window again
+        SysCallManager.clearWindow()
     def registerMarriage(self):
         cursor = sqlCursor.get_instance().get_cursor()
         # allow registry agent to register a marriage
         # perform issue ticket steps
         inputs = {'partner1_fname': None,'partner1_lname':None,'partner2_fname': None,'partner2_lname':None}
-        inputs = self.iterate(inputs)
+        inputs = self.iterate(inputs)#asks for user inputs
+        prop_form = ['str','str','str','str']#error checking
+        if self.iterate_check(inputs,prop_form) == False:return#is this is true it means user returned to dashboard
         regno = UniqueIDManager.getUniqueRegistrationNumber('marriages')#generate unique number
         regdate = self.get_current_date()
         regplace = User.getUserCity()#get the city of the loged in user
         if self.check_person(inputs['partner1_fname'],inputs['partner1_lname']):#True if partner_1 is not in database
             print(f"Enter the following information about {inputs['partner1_fname']} {inputs['partner1_lname']}")
             columns2 = {'bdate': None,'bplace': None,'address': None,'phone': None}
-            columns2 = self.iterate(columns2)
-            try:
-                cursor.execute(f'''INSERT INTO persons VALUES 
-                ('{inputs['partner1_fname']}','{inputs['partner1_lname']}','{columns2['bdate']}','{columns2['bplace']}','{columns2['address']}','{columns2['phone']}');''')
-                sqlCursor.get_instance().get_connection().commit()
-            except ValueError:
-                print('Integrity Constraint')
+            columns2 = self.iterate(columns2)#asks for user inputs
+            prop_form = ['date','str','None','phone']#error checking
+            if self.iterate_check(columns2,prop_form) == False:return#is this is true it means user returned to dashboard
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{inputs['partner1_fname']}','{inputs['partner1_lname']}','{columns2['bdate']}','{columns2['bplace']}','{columns2['address']}','{columns2['phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
         if self.check_person(inputs['partner2_fname'],inputs['partner2_lname']):#True if partner2 is not in database
             print(f"Enter the following information about {inputs['partner2_fname']} {inputs['partner2_lname']}")
             columns3 = {'bdate': None,'bplace': None,'address': None,'phone': None}
-            columns3 = self.iterate(columns3)
-            try:
-                cursor.execute(f'''INSERT INTO persons VALUES 
-                ('{inputs['partner2_fname']}','{inputs['partner2_lname']}','{columns3['bdate']}','{columns3['bplace']}','{columns3['address']}','{columns3['phone']}');''')
-                sqlCursor.get_instance().get_connection().commit()
-            except ValueError:
-                print('Integrity Constraint')
+            columns3 = self.iterate(columns3)#asks for user inputs
+            prop_form = ['date','str','None','phone']#error checking
+            if self.iterate_check(columns3,prop_form) == False:return#is this is true it means user returned to dashboard
+            cursor.execute(f'''INSERT INTO persons VALUES 
+            ('{inputs['partner2_fname']}','{inputs['partner2_lname']}','{columns3['bdate']}','{columns3['bplace']}','{columns3['address']}','{columns3['phone']}');''')
+            sqlCursor.get_instance().get_connection().commit()
         ##################################################################################
         # register marriage SQL logic goes here
         cursor.execute(f"INSERT INTO marriages VALUES ('{regno}','{regdate}','{regplace}','{inputs['partner1_fname']}','{inputs['partner1_lname']}','{inputs['partner2_fname']}','{inputs['partner2_lname']}')")
@@ -186,13 +274,6 @@ class RegistryAgent(User):
         input("press Enter to return to Dashboard")
         # clear the window again
         SysCallManager.clearWindow()
-    @staticmethod
-    def reg_exist(regno):#Will return True if registration exist
-        cursor = sqlCursor.get_instance().get_cursor()
-        cursor.execute("SELECT expiry FROM registrations WHERE regno=:regno;",{'regno':regno})
-        if cursor.fetchone() == None:
-            return False
-        return True
     def renewVehicleRegistration(self):
         # allow registry agent to renew their registration
         # perform issue ticket steps
@@ -206,6 +287,7 @@ class RegistryAgent(User):
                 exist = not(self.reg_exist(regno))
             else:
                 SysCallManager.ReturnToDashboard()
+                return
         cursor.execute("SELECT expiry FROM registrations WHERE regno=:regno;",{'regno':regno})
         cur_expiry = cursor.fetchone()[0]
         cursor.execute(f"SELECT strftime('%s','now') - strftime('%s','{cur_expiry}');")#calculating time difference in unix timestamp
@@ -224,16 +306,12 @@ class RegistryAgent(User):
             #turn it back to a string and concatinate it back to the rest of the dates.
             cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
             sqlCursor.get_instance().get_connection().commit()
-
         # end logic
         ##################################################################################
-
         print("successfully renewed vehicle registration\n")
         input("press Enter to return to Dashboard")
-
         # clear the window again
         SysCallManager.clearWindow()
-
     def processBillOfSale(self):
         cursor = sqlCursor.get_instance().get_cursor()
         # allow rgistry agent to process a bill of sale
@@ -241,13 +319,16 @@ class RegistryAgent(User):
         inputs = {'vin_of_car':None,'firstname_of_current_owner':None,\
             'lastname_of_current_owner':None,'firstname_of_new_owner':None,\
                 'lastname_of_new_owner':None,'New_plate_number':None}
-        inputs = self.iterate(inputs)
+        inputs = self.iterate(inputs)#asks for user inputs
+        prop_form = ['None','str','str','str','str','None']#error checking, vin and platenumber can be anything
+        if self.iterate_check(inputs,prop_form) == False:return#is this is true it means user returned to dashboard
         cursor.execute(f"SELECT fname,lname FROM registrations WHERE vin='{inputs['vin_of_car']}';")
         owner = cursor.fetchone() 
         if owner == None or (owner[0] != inputs['firstname_of_current_owner'] and owner[1] != inputs['lastname_of_current_owner']):
             #This will check if the most recent owner of the vehicle is the inputed current owner and if it isnt user will be returned to Dashboard
             print(f"The inputed vehicle with the vin number {inputs['vin_of_car']}is not currently owned by {inputs['firstname_of_current_owner']} {inputs['lastname_of_current_owner']}")
             SysCallManager.ReturnToDashboard()
+            return
         regno = UniqueIDManager.getUniqueRegistrationNumber('registrations')#generate unique number
         regdate = str(self.get_current_date())
         ##################################################################################
@@ -268,6 +349,7 @@ class RegistryAgent(User):
         # allow registry agent to process a payment
         # perform issue ticket steps
         tno = input("Enter ticket number: ")
+        while not(tno).isdigit(): tno = input("Ticket number must be a digit : ")
         payment = int(input("Enter payment amount: "))
         if payment <= 0:
             print('Payment must be greater than 0$')
@@ -304,19 +386,10 @@ class RegistryAgent(User):
                 return
         # end logic
         ##################################################################################
-
         print("successfully processed payment\n")
         input("press Enter to return to Dashboard")
-
         # clear the window again
         SysCallManager.clearWindow()
-    @staticmethod
-    def query_check(query,error_promt):#this function checks if nothing was found by the query item is the attributes in select clause of the query
-        if query == None:
-            print(error_promt)
-            SysCallManager.ReturnToDashboard() 
-            return 
-
     def getDriverAbstract(self):
         # allow registry agent to get a driver abstract
         # perform issue ticket steps
