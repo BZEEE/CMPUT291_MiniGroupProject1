@@ -76,12 +76,14 @@ class RegistryAgent(User):
     @staticmethod
     def is_string(inp):#checks if input is string
         #returns true if 'inp' is a string
+        if inp == '':return False#cant be null
         for item in inp:
-            if item.isdigit():
+            if item.isdigit() or inp == '':
                 return False
         return True
     @staticmethod
     def is_phone(inp):#checks if phone number is properly formatted
+        #returns True if phone is of proper format
         if (inp.replace('-','')).isdigit():return True
         #the '-' is simply removed and the string is supposed to only contain digits.
         else:return False
@@ -113,7 +115,9 @@ class RegistryAgent(User):
                 SysCallManager.ReturnToDashboard()
                 output = False
                 break
-            RegistryAgent.re_input(cont,attr)
+            if RegistryAgent.re_input(cont,attr) == False:
+                SysCallManager.ReturnToDashboard()
+                return False#this will terminate the for loop in 'iterate_check'
         return output#need to return a boolean so we can terminate the outer function if needed
     @staticmethod
     def re_input(cont,attr):#container is where the data is saved 
@@ -124,10 +128,10 @@ class RegistryAgent(User):
         while option.lower() != 'n': 
             if option.lower() == 'y':
                 cont[attr] = input(f"Enter new {attr}: ")
-                break
+                return
             option = input(f"{attr} has an incorrect format. Press 'Y' to re-enter a new {attr} or 'N' to return to dashboard: ")
         if option.lower() == 'n':cont[attr] = ['']#if the outside loop from 'inp_check' reads this it will break and return to dashboard  
-        return
+        return False#will terminate the outer loop inp_check instantly
     @staticmethod
     def date_form(inp):#this is a helper function for 'is_date' that checks the first ten characters of a date.
         for item in range(0,10):
@@ -196,7 +200,7 @@ class RegistryAgent(User):
             'm_lname': None,'bdate': None,'bplace': None}
         columns = self.iterate(columns)#asks for user inputs
         prop_form = ['str','str','str','str','str','str','str','date','str']#error checking
-        if self.iterate_check(columns,prop_form) == False:return#is this is true it means user returned to dashboard
+        if self.iterate_check(columns,prop_form) == False:return#if this is true it means user returned to dashboard
         if self.check_person(columns['f_fname'],columns['f_lname']):#True if father is not in database
             print(f"Enter information about {columns['fname']} {columns['lname']}'s father'")
             columns2 = {'f_bdate': None,'f_bplace': None,'f_address': None,'f_phone': None}
@@ -282,8 +286,9 @@ class RegistryAgent(User):
         exist = not(self.reg_exist(regno))#
         while exist:# check if registraion num exist
             print('Registration not found')
-            option = input("Enter (1) to enter a different registry number\nEnter (2) to return to dashboard")
+            option = input("Enter (1) to enter a different registry number\nPress any button  to return to dashboard: ")
             if option == '1':
+                regno = input("Enter registry number: ")
                 exist = not(self.reg_exist(regno))
             else:
                 SysCallManager.ReturnToDashboard()
@@ -409,13 +414,14 @@ class RegistryAgent(User):
                         AND  (julianday('now')-julianday(ddate)) <= 730;
                         ''')
         num_points = cursor.fetchone()
-        if num_points[0] == None: num_points[0] = 0#change the sum of total demerit points to 0 from None if there are no demerit points
+        if num_points[0] == None: num_points = 0#change the sum of total demerit points to 0 from None if there are no demerit points
+        else: num_points == num_points[0]
         cursor.execute(f'''SELECT t.tno,t.vdate,t.violation,t.fine,r.regno,v.make,v.model FROM tickets t,registrations r,vehicles v 
                         WHERE r.fname = '{fname}' AND r.lname = '{lname}' AND r.regno = t.regno
                         AND r.vin = v.vin ORDER BY t.vdate DESC;''')
         tickets = cursor.fetchall()
         if tickets == None:tickets=0
-        print(f"-----{fname} {lname}'s Driver Abstract-----\nnumber of tickets: {len(tickets)}\nnumber of demerit notices: {num_dnotice[0]}\nnumber of demeritpoints within the past 2 years: {num_points[0]}\ntotal number of demerit points: {num_dnotice[0]}")
+        print(f"-----{fname} {lname}'s Driver Abstract-----\nnumber of tickets: {len(tickets)}\nnumber of demerit notices: {num_dnotice[0]}\nnumber of demeritpoints within the past 2 years: {num_points}\ntotal number of demerit points: {num_dnotice[1]}")
         option = input(f"view {fname} {lname}'s tickets (Y/N)?: ")
         start = 0
         end = 0
@@ -445,4 +451,3 @@ class RegistryAgent(User):
         # clear the window again
         SysCallManager.clearWindow()
         return
-        
