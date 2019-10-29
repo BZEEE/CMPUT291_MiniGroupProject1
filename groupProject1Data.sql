@@ -14,14 +14,14 @@ insert into persons values ('Daenerys', 'Targaryan', '2012-09-09', 'Winterfell ,
 
 -- create Users
 insert into users values ('ns1', 'GoT1', 'o', 'Ned', 'Stark', 'Winterfell');
-insert into users values ('as2', 'GoT2', 'a', 'Arya', 'Stark', 'Winterfell');
+insert into users values ('as2', 'GoT2', 'r', 'Arya', 'Stark', 'Winterfell');
 insert into users values ('rs3', 'GoT3', 'o', 'Rob', 'Stark', 'Winterfell');
-insert into users values ('ss4', 'GoT4', 'a', 'Sansa', 'Stark', 'Winterfell');
+insert into users values ('ss4', 'GoT4', 'r', 'Sansa', 'Stark', 'Winterfell');
 insert into users values ('bs5', 'GoT5', 'o', 'Bran', 'Stark', 'Winterfell');
-insert into users values ('tl6', 'GoT6', 'a', 'Tyrian', 'Lannister', 'Winterfell');
+insert into users values ('tl6', 'GoT6', 'r', 'Tyrian', 'Lannister', 'Winterfell');
 insert into users values ('jl7', 'GoT7', 'o', 'Jamie', 'Lannister', 'Winterfell');
-insert into users values ('dt8', 'GoT8', 'a', 'Daenerys', 'Targaryan', 'Winterfell');
-insert into users values ('js9', 'GoT9', 'a', 'John', 'Snow', 'Winterfell');
+insert into users values ('dt8', 'GoT8', 'r', 'Daenerys', 'Targaryan', 'Winterfell');
+insert into users values ('js9', 'GoT9', 'r', 'John', 'Snow', 'Winterfell');
 
 
 

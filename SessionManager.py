@@ -3,11 +3,7 @@ from TrafficOfficer import TrafficOfficer
 from RegistryAgent import RegistryAgent
 from AuthenticationManager import AuthenticationManager
 
-class SessionManager:
-    def __init__(self):
-        #Value of password and Uid will be set after authentication
-        self.validPassword = None 
-        self.validUid = None
+class SessionManager():
     @staticmethod
     def enterSession():
         
@@ -59,7 +55,6 @@ class SessionManager:
                 print("password is not correct")
                 continue
             validPassword = True
-        self.validPassword = password #saving this to be able to refer to the current user
         userType = AuthenticationManager.getUserType(uid)
         fullname = AuthenticationManager.getUserFullname(uid)
         if (userType == 'a'):
