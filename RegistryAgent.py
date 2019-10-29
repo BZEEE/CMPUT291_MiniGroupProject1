@@ -236,9 +236,7 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully registered birth\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
     def registerMarriage(self):
         cursor = sqlCursor.get_instance().get_cursor()
         # allow registry agent to register a marriage
@@ -275,9 +273,7 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully registered marriage\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
     def renewVehicleRegistration(self):
         # allow registry agent to renew their registration
         # perform issue ticket steps
@@ -314,9 +310,7 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully renewed vehicle registration\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
     def processBillOfSale(self):
         cursor = sqlCursor.get_instance().get_cursor()
         # allow rgistry agent to process a bill of sale
@@ -346,9 +340,7 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully processed bill of sale\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
     def processPayment(self):
         cursor = sqlCursor.get_instance().get_cursor()
         # allow registry agent to process a payment
@@ -392,9 +384,7 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully processed payment\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
     def getDriverAbstract(self):
         # allow registry agent to get a driver abstract
         # perform issue ticket steps
@@ -447,7 +437,5 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully retrieved driver abstract\n")
-        input("press Enter to return to Dashboard")
-        # clear the window again
         SysCallManager.clearWindow()
         return

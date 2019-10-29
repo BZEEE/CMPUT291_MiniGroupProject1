@@ -88,7 +88,7 @@ class TrafficOfficer(User):
                     violationDate = datetime.date.today().strftime("%Y-%m-%d")
                 violationMessage = input("enter reason for violation: ")
                 fineAmount = input("enter fine amount: ")
-                tno = UniqueIDManager.getInstance().getUniqueTicketNumber()
+                tno = UniqueIDManager.getUniqueTicketNumber()
 
                 cursor.execute(
                     "Insert into tickets values (?, ?, ?, ?, ?)", (tno, regno, fineAmount, violationMessage, violationDate)
