@@ -1,0 +1,198 @@
+drop table if exists demeritNotices;
+drop table if exists tickets;
+drop table if exists registrations;
+drop table if exists vehicles;
+drop table if exists marriages;
+drop table if exists births;
+drop table if exists persons;
+drop table if exists payments;
+drop table if exists users;
+
+
+create table persons (
+  fname		char(12),
+  lname		char(12),
+  bdate		date,
+  bplace	char(20), 
+  address	char(30),
+  phone		char(12),
+  primary key (fname, lname)
+);
+create table births (
+  regno		int,
+  fname		char(12),
+  lname		char(12),
+  regdate	date,
+  regplace	char(20),
+  gender	char(1),
+  f_fname	char(12),
+  f_lname	char(12),
+  m_fname	char(12),
+  m_lname	char(12),
+  primary key (regno),
+  foreign key (fname,lname) references persons,
+  foreign key (f_fname,f_lname) references persons,
+  foreign key (m_fname,m_lname) references persons
+);
+create table marriages (
+  regno		int,
+  regdate	date,
+  regplace	char(20),
+  p1_fname	char(12),
+  p1_lname	char(12),
+  p2_fname	char(12),
+  p2_lname	char(12),
+  primary key (regno),
+  foreign key (p1_fname,p1_lname) references persons,
+  foreign key (p2_fname,p2_lname) references persons
+);
+create table vehicles (
+  vin		char(5),
+  make		char(10),
+  model		char(10),
+  year		int,
+  color		char(10),
+  primary key (vin)
+);
+create table registrations (
+  regno		int,
+  regdate	date,
+  expiry	date,
+  plate		char(7),
+  vin		char(5), 
+  fname		char(12),
+  lname		char(12),
+  primary key (regno),
+  foreign key (vin) references vehicles,
+  foreign key (fname,lname) references persons
+);
+create table tickets (
+  tno		int,
+  regno		int,
+  fine		int,
+  violation	text,
+  vdate		date,
+  primary key (tno),
+  foreign key (regno) references registrations
+);
+create table demeritNotices (
+  ddate		date, 
+  fname		char(12), 
+  lname		char(12), 
+  points	int, 
+  desc		text,
+  primary key (ddate,fname,lname),
+  foreign key (fname,lname) references persons
+);
+create table payments (
+  tno		int,
+  pdate		date,
+  amount	int,
+  primary key (tno, pdate),
+  foreign key (tno) references tickets
+);
+create table users (
+  uid		char(8),
+  pwd		char(8),
+  utype		char(1),	-- 'a' for agents, 'o' for officers
+  fname		char(12),
+  lname		char(12), 
+  city		char(15),
+  primary key(uid),
+  foreign key (fname,lname) references persons
+);
+-- Data prepared by Brandon Zukowski, bbjzukows@ualberta.ca
+-- Published on Oct 23rd, 2019
+
+insert into persons values ('Ned', 'Stark', '2012-01-01', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0010-0001');
+insert into persons values ('Bran', 'Stark', '2012-02-02', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0010-0891');
+insert into persons values ('Arya', 'Stark', '2012-03-03', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0010-0111');
+insert into persons values ('Sansa', 'Stark', '2012-04-04', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0010-2301');
+insert into persons values ('Rob', 'Stark', '2012-05-05', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0780-0001');
+insert into persons values ('John', 'Snow', '2012-06-06', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0610-2401');
+insert into persons values ('Tyrian', 'Lannister', '2012-07-07', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0110-0871');
+insert into persons values ('Jamie', 'Lannister', '2012-08-08', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-6810-4531');
+insert into persons values ('Daenerys', 'Targaryan', '2012-09-09', 'Winterfell , Westeros', 'Kingslanding, Westeros', '780-0114-5901');
+
+
+-- create Users
+insert into users values ('ns1', 'GoT1', 'o', 'Ned', 'Stark', 'Winterfell');
+insert into users values ('as2', 'GoT2', 'a', 'Arya', 'Stark', 'Winterfell');
+insert into users values ('rs3', 'GoT3', 'o', 'Rob', 'Stark', 'Winterfell');
+insert into users values ('ss4', 'GoT4', 'a', 'Sansa', 'Stark', 'Winterfell');
+insert into users values ('bs5', 'GoT5', 'o', 'Bran', 'Stark', 'Winterfell');
+insert into users values ('tl6', 'GoT6', 'a', 'Tyrian', 'Lannister', 'Winterfell');
+insert into users values ('jl7', 'GoT7', 'o', 'Jamie', 'Lannister', 'Winterfell');
+insert into users values ('dt8', 'GoT8', 'a', 'Daenerys', 'Targaryan', 'Winterfell');
+insert into users values ('js9', 'GoT9', 'a', 'John', 'Snow', 'Winterfell');
+
+
+
+-- Partner names can be given in any order (as can be noted)
+insert into marriages values (200, '2019-07-13', 'Winterfell, Westeros', 'John', 'Snow', 'Daenerys', 'Targaryan');
+
+insert into vehicles values ('U100', 'Chevrolet', 'Camaro', 1969, 'red');
+insert into vehicles values ('U101', 'Mercedes', 'SL 230', 1964, 'black');
+insert into vehicles values ('U102', 'Chevrolet', 'Camaro', 1968, 'red');
+insert into vehicles values ('U103', 'Mercedes', 'SL 230', 1964, 'black');
+insert into vehicles values ('U104', 'Chevrolet', 'Camaro', 1967, 'red');
+insert into vehicles values ('U105', 'Chevrolet', 'Camaro', 1966, 'red');
+insert into vehicles values ('U106', 'Chevrolet', 'Camaro', 1965, 'red');
+
+insert into registrations values (0, '2008-05-26','2021-05-25', 'WCing','U100', 'John', 'Snow');
+insert into registrations values (1, '2009-01-16','2022-01-15', 'WCing','U101', 'Ned', 'Stark');
+insert into registrations values (3, '2010-05-26','2019-10-30', 'WCing','U102', 'Bran', 'Stark');
+insert into registrations values (4, '2010-01-16','2005-01-15', 'WCing','U103', 'Arya', 'Stark');
+
+insert into registrations values (5, '2012-05-26','2021-05-25', 'WCing','U104', 'Jamie', 'Lannister');
+insert into registrations values (6, '2013-01-16','2022-01-15', 'WCing','U105', 'Tyrian', 'Lannister');
+insert into registrations values (7, '2014-05-26','2021-05-25', 'WCing','U106', 'Rob', 'Stark');
+insert into registrations values (8, '2015-01-16','2022-01-15', 'WCing','U105', 'Sansa', 'Stark');
+insert into registrations values (9, '2016-05-26','2021-05-25', 'WCing','U104', 'Daenerys', 'Targaryan');
+insert into registrations values (10, '2016-05-26','2021-05-25', 'WCing','U106', 'Ned', 'Stark');
+
+insert into tickets values (0,0,20,'speeding','2016-05-26');
+insert into tickets values (1,1,30,'speeding','2017-08-26');
+insert into tickets values (3,3,50,'speeding','2017-05-22');
+insert into tickets values (4,4,60,'speeding','2016-05-06');
+insert into tickets values (5,5,70,'speeding','2018-02-26');
+insert into tickets values (6,6,80,'speeding','2016-01-26');
+insert into tickets values (7,7,90,'speeding','2012-05-26');
+insert into tickets values (8,8,100,'speeding','2019-05-26');
+insert into tickets values (9,9,110,'speeding','2012-02-26');
+insert into tickets values (10,0,20,'speeding','2016-15-26');
+insert into tickets values (11,1,30,'speeding','2017-18-26');
+insert into tickets values (13,3,50,'speeding','2017-15-22');
+insert into tickets values (14,4,60,'speeding','2016-15-06');
+insert into tickets values (15,5,70,'speeding','2018-12-26');
+insert into tickets values (16,6,80,'speeding','2016-11-26');
+insert into tickets values (17,7,90,'speeding','2012-15-26');
+insert into tickets values (18,8,100,'speeding','2019-15-26');
+insert into tickets values (19,9,110,'speeding','2012-12-26');
+insert into tickets values (161,6,80,'speeding','2016-11-26');
+insert into tickets values (171,6,80,'speeding','2017-11-26');
+insert into tickets values (181,6,80,'speeding','2018-11-26');
+insert into tickets values (191,6,80,'speeding','2019-11-26');
+insert into tickets values (201,6,80,'speeding','2020-11-26');
+insert into tickets values (211,6,80,'speeding','2021-11-26');
+insert into tickets values (221,6,80,'speeding','2022-11-26');
+insert into tickets values (231,6,80,'speeding','2023-11-26');
+
+insert into demeritNotices values ('2018-06-20','John','Snow',5,'speeding');
+insert into demeritNotices values ('2017-06-20','John','Snow',5,'speeding');
+insert into demeritNotices values ('2019-06-20','Daenerys','Targaryan',5,'speeding');
+insert into demeritNotices values ('2015-06-20','Ned','Stark',5,'speeding');
+insert into demeritNotices values ('2008-06-20','John','Snow',5,'speeding');
+insert into demeritNotices values ('2011-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2012-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2013-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2014-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2015-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2016-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2017-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2018-06-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2019-03-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2019-04-20','Tyrian','Lannister',5,'speeding');
+insert into demeritNotices values ('2019-05-20','Tyrian','Lannister',5,'speeding');
+
+

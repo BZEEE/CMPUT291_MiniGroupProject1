@@ -62,7 +62,7 @@ class SessionManager():
             validPassword = True
         userType = AuthenticationManager.getUserType(uid)
         fullname = AuthenticationManager.getUserFullname(uid)
-        if (userType == 'r'):
+        if (userType == 'a'):
             return RegistryAgent(userType, fullname)
         elif (userType == 'o'):
             return TrafficOfficer(userType, fullname)
