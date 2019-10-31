@@ -3,7 +3,6 @@ from User import User
 from SysCallManager import SysCallManager
 from cursor import sqlCursor
 from UniqueIDManager import UniqueIDManager
-import sqlite3
 
 class RegistryAgent(User):
     # inherit from base properties of user
@@ -237,7 +236,7 @@ class RegistryAgent(User):
                 cursor.execute(f'''INSERT INTO persons VALUES 
                 ('{columns['f_fname']}','{columns['f_lname']}','{columns2['f_bdate']}','{columns2['f_bplace']}','{columns2['f_address']}','{columns2['f_phone']}');''')
                 sqlCursor.get_instance().get_connection().commit()
-            except sqlite3.Error as e:
+            except sqlCursor.get_error() as e:
                 print(f"error when inserting details of {columns['f_fname']} {columns['f_lname']} into the database")
         if self.check_person(columns['m_fname'],columns['m_lname']):#True if mother is not in database
             print(f"Enter information about {columns['fname']} {columns['lname']}'s mother'")
@@ -263,7 +262,7 @@ class RegistryAgent(User):
             cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
             INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{m_address}','{m_phone}');''')
             sqlCursor.get_instance().get_connection().commit()
-        except sqlite3.Error as e:
+        except sqlCursor.get_error() as e:
             print(f"error when inserting details of {columns['fname']} {columns['lname']} into the database")
         # end logic
         ##################################################################################

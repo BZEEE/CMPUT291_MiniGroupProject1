@@ -19,5 +19,8 @@ class sqlCursor:
 
     def get_cursor(self):
         return self.__cursor
+    @staticmethod
+    def get_error():
+        return sqlite3.Error
 
     
