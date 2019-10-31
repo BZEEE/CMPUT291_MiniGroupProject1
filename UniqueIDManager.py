@@ -1,14 +1,22 @@
 from cursor import sqlCursor
 
 class UniqueIDManager:
+    __singleton = None
     __tno = 0
     __regno = 0
     __vin = 100
     @staticmethod
     def getUniqueTicketNumber():
-        copy = UniqueIDManager.__tno    # make a copy of the ticket number counter
-        UniqueIDManager.__tno += 1      # increment
-        return copy     # return copy of tno before it was incremented
+        cursor = sqlCursor.get_instance().get_cursor()
+        conn = sqlCursor.get_instance().get_connection()
+        cursor.execute(f"SELECT max(tno) FROM tickets;")
+        conn.commit()
+        response = cursor.fetchone()
+        if response == None:
+            response = 0
+        else:
+            response = int(response[0]) + 1
+        return response
     
     @staticmethod
     def getUniqueRegistrationNumber(table):
@@ -16,7 +24,9 @@ class UniqueIDManager:
         copy = UniqueIDManager.__regno   # make a copy of the registration number counter
         if copy == 0: #query to see if theres a registration number in the database already
             cursor = sqlCursor.get_instance().get_cursor()
+            conn = sqlCursor.get_instance().get_connection()
             cursor.execute(f"SELECT max(regno) FROM {table};")
+            conn.commit()
             val = cursor.fetchone()
             if val[0] == None:
                 None

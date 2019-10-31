@@ -39,7 +39,7 @@ class AuthenticationManager:
         cursorResponse = cursor.execute(
             "Select pwd " \
             "From users " \
-            "Where uid =:uid " ,{'uid':uid}
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
         cursorResponse = cursor.fetchall()
 
@@ -55,9 +55,9 @@ class AuthenticationManager:
         # return utype associated with user
         cursor = sqlCursor.get_instance().get_cursor()
         cursorResponse = cursor.execute(
-            '''Select utype  
-            From users  
-            Where uid =:uid;''',{'uid':uid}
+            "Select utype " \
+            "From users " \
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
         cursorResponse = cursor.fetchall()
 
@@ -71,9 +71,9 @@ class AuthenticationManager:
         # return fullname (string) of user 
         cursor = sqlCursor.get_instance().get_cursor()
         cursorResponse = cursor.execute(
-            '''Select fname, lname 
-            From users 
-            Where uid =:uid;''',{'uid':uid}
+            "Select fname, lname " \
+            "From users " \
+            "Where uid=:uid COLLATE NOCASE", {"uid": uid}
         )
         cursorResponse = cursor.fetchall()
 

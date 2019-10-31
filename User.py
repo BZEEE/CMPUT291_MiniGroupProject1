@@ -24,7 +24,7 @@ class User:
         # show the services available for a specific user, implmented differently by each possible user
         pass
 
-    def displayFormattedQueryResponse(self, queryResponse, start, end, *columnTitles):
+    def displayFormattedQueryResponse(self, queryResponse, start, end, columnTitles):
         maxLength = 20
         for title in columnTitles:
             i = len(title)
@@ -34,14 +34,13 @@ class User:
                 print(" ", end="")
         print(" | ")
 
-
         for tuples in queryResponse:
-            for k in range(26 * len(tuples)):
+            for k in range((maxLength + 3) * len(tuples) + 3):
                 print("-", end="")
             print("")
             print(" | ", end="")
             for col in range(start, end + 1):
-                i = len(tuples[col])
+                i = len(str(tuples[col]))
                 print(tuples[col], end="")
                 for j in range(maxLength - i):
                     print(" ", end="")
