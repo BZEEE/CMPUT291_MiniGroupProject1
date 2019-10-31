@@ -139,7 +139,7 @@ insert into vehicles values ('U104', 'Chevrolet', 'Camaro', 1967, 'red');
 insert into vehicles values ('U105', 'Chevrolet', 'Camaro', 1966, 'red');
 insert into vehicles values ('U106', 'Chevrolet', 'Camaro', 1965, 'red');
 
-insert into registrations values (0, '2008-05-26','2021-05-25', 'WCing','U100', 'John', 'Snow');
+insert into registrations values (0, '2008-05-26','2010-05-25', 'WCing','U100', 'John', 'Snow');
 insert into registrations values (1, '2009-01-16','2022-01-15', 'WCing','U101', 'Ned', 'Stark');
 insert into registrations values (3, '2010-05-26','2019-10-30', 'WCing','U102', 'Bran', 'Stark');
 insert into registrations values (4, '2010-01-16','2005-01-15', 'WCing','U103', 'Arya', 'Stark');

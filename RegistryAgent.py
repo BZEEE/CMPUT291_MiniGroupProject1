@@ -245,15 +245,21 @@ class RegistryAgent(User):
             columns3 = self.iterate(columns3)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
             if self.iterate_check(columns3,prop_form) == False:return#is this is true it means user returned to dashboard
-            cursor.execute(f'''INSERT INTO persons VALUES 
-            ('{columns['m_fname']}','{columns['m_lname']}','{columns3['m_bdate']}','{columns3['m_bplace']}','{columns3['m_address']}','{columns3['m_phone']}');''')
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{columns['m_fname']}','{columns['m_lname']}','{columns3['m_bdate']}','{columns3['m_bplace']}','{columns3['m_address']}','{columns3['m_phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlite3.Error as e:
+                    print(f"error when inserting details of {columns['m_fname']} {columns['m_lname']} into the database")
         regno = UniqueIDManager.getUniqueRegistrationNumber('births')#generate unique number
         regdate = self.get_current_date()
         regplace = User.getUserCity()#get the city of the loged in user
         #getting the mothers phone and address
-        cursor.execute("SELECT address,phone FROM persons WHERE fname=:m_fname AND lname=:m_lname;",\
+        try:
+            cursor.execute("SELECT address,phone FROM persons WHERE fname=:m_fname AND lname=:m_lname;",\
             {'m_fname':columns['m_fname'],'m_lname':columns['m_lname']})
+        except sqlite3.Error as e:
+            print(f"error when retrieving data about {columns['m_fname']} {columns['m_lname']} ")
         m_info = cursor.fetchone()
         m_address = m_info[0]#mothers address
         m_phone = m_info[1]#mothers phone number
@@ -263,7 +269,7 @@ class RegistryAgent(User):
             cursor.executescript(f'''INSERT INTO births VALUES ('{regno}','{columns['fname']}','{columns['lname']}','{regdate}','{regplace}','{columns['gender']}','{columns['f_fname']}','{columns['f_lname']}','{columns['m_fname']}','{columns['m_lname']}');
             INSERT INTO persons VALUES ('{columns['fname']}','{columns['lname']}','{columns['bdate']}','{columns['bplace']}','{m_address}','{m_phone}');''')
             sqlCursor.get_instance().get_connection().commit()
-        except sqlite3.Error as e:
+        except sqlCursor.get_error() as e:
             print(f"error when inserting details of {columns['fname']} {columns['lname']} into the database")
         # end logic
         ##################################################################################
@@ -290,22 +296,31 @@ class RegistryAgent(User):
             columns2 = self.iterate(columns2)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
             if self.iterate_check(columns2,prop_form) == False:return#is this is true it means user returned to dashboard
-            cursor.execute(f'''INSERT INTO persons VALUES 
-            ('{inputs['partner1_fname']}','{inputs['partner1_lname']}','{columns2['bdate']}','{columns2['bplace']}','{columns2['address']}','{columns2['phone']}');''')
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{inputs['partner1_fname']}','{inputs['partner1_lname']}','{columns2['bdate']}','{columns2['bplace']}','{columns2['address']}','{columns2['phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlCursor.get_error() as e:
+                print(f"error when inserting {inputs['partner1_fname']} {inputs['partner1_lname']}")
         if self.check_person(inputs['partner2_fname'],inputs['partner2_lname']):#True if partner2 is not in database
             print(f"Enter the following information about {inputs['partner2_fname']} {inputs['partner2_lname']}")
             columns3 = {'bdate': None,'bplace': None,'address': None,'phone': None}
             columns3 = self.iterate(columns3)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
             if self.iterate_check(columns3,prop_form) == False:return#is this is true it means user returned to dashboard
-            cursor.execute(f'''INSERT INTO persons VALUES 
-            ('{inputs['partner2_fname']}','{inputs['partner2_lname']}','{columns3['bdate']}','{columns3['bplace']}','{columns3['address']}','{columns3['phone']}');''')
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute(f'''INSERT INTO persons VALUES 
+                ('{inputs['partner2_fname']}','{inputs['partner2_lname']}','{columns3['bdate']}','{columns3['bplace']}','{columns3['address']}','{columns3['phone']}');''')
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlCursor.get_error() as e:
+                print(f"error when inserting data about {inputs['partner2_fname']} {inputs['partner2_lname']}")
         ##################################################################################
         # register marriage SQL logic goes here
-        cursor.execute(f"INSERT INTO marriages VALUES ('{regno}','{regdate}','{regplace}','{inputs['partner1_fname']}','{inputs['partner1_lname']}','{inputs['partner2_fname']}','{inputs['partner2_lname']}')")
-        sqlCursor.get_instance().get_connection().commit()
+        try:
+            cursor.execute(f"INSERT INTO marriages VALUES ('{regno}','{regdate}','{regplace}','{inputs['partner1_fname']}','{inputs['partner1_lname']}','{inputs['partner2_fname']}','{inputs['partner2_lname']}')")
+            sqlCursor.get_instance().get_connection().commit()
+        except sqlCursor.get_error() as e:
+            print("error when inserting marriage")
         # end logic
         ##################################################################################
         print("successfully registered marriage\n")
@@ -330,9 +345,15 @@ class RegistryAgent(User):
             else:
                 SysCallManager.ReturnToDashboard()
                 return
-        cursor.execute("SELECT expiry FROM registrations WHERE regno=?;",regno)
+        try:
+            cursor.execute("SELECT expiry FROM registrations WHERE regno=?;",regno)
+        except sqlCursor.get_error() as e:
+            print(f"error when retrieving data about vehicle with vin number: {regno}")
         cur_expiry = cursor.fetchone()[0]
-        cursor.execute(f"SELECT strftime('%s','now') - strftime('%s',:cur_expiry);",{'cur_expiry':cur_expiry})#calculating time difference in unix timestamp
+        try:
+            cursor.execute(f"SELECT strftime('%s','now') - strftime('%s',:cur_expiry);",{'cur_expiry':cur_expiry})#calculating time difference in unix timestamp
+        except sqlCursor.get_error() as e:
+            print(f"error when retrieving data about date {cur_expity}")
         ##################################################################################
         # renew vehicle registration SQL logic goes here
         if cursor.fetchone()[0] < 0:#registration is not expired
@@ -340,15 +361,21 @@ class RegistryAgent(User):
             #slef.get_current_date returns an integer so need to convert it to a string to concatenate
             #will concatante first 4 letters of the string, which is the year, turn it into an integer add1 to it and then
             #turn it back to a string and concatinate it back to the rest of the dates.
-            cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlCursor.get_error() as e:
+                print(f"error when updating {new_date } and {regno}")
         else:#registration is expired
             cur_date = self.get_current_date()
             new_date = str(int(str(cur_date)[:4])+1)+(cur_date[4:])
             #will concatante first 4 letters of the string, which is the year, turn it into an integer add1 to it and then
             #turn it back to a string and concatinate it back to the rest of the dates.
-            cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute("UPDATE registrations SET expiry=:new_date WHERE regno=:regno;",{'new_date':new_date,'regno':regno})
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlCursor.get_error() as e:
+                print(f"error when updating {new_date} and {regno}")
         # end logic
         ##################################################################################
         print("successfully renewed vehicle registration\n")
@@ -368,7 +395,10 @@ class RegistryAgent(User):
         inputs = self.iterate(inputs)#asks for user inputs
         prop_form = ['None','str','str','str','str','None']#error checking, vin and platenumber can be anything
         if self.iterate_check(inputs,prop_form) == False:return#is this is true it means user returned to dashboard
-        cursor.execute(f"SELECT fname,lname FROM registrations WHERE vin=:vin ORDER BY regdate DESC;",{'vin':inputs['vin_of_car']})
+        try:
+            cursor.execute(f"SELECT fname,lname FROM registrations WHERE vin=:vin ORDER BY regdate DESC;",{'vin':inputs['vin_of_car']})
+        except sqlCursor.get_error() as e:
+            print(f"error when retrieving data from vehicle with vin: {inputs['vin_of_car']}")
         owner = cursor.fetchone() 
         if owner == None or (owner[0] != inputs['firstname_of_current_owner'] or owner[1] != inputs['lastname_of_current_owner']):
             #This will check if the most recent owner of the vehicle is the inputed current owner and if it isnt user will be returned to Dashboard
@@ -379,11 +409,14 @@ class RegistryAgent(User):
         regdate = str(self.get_current_date())
         ##################################################################################
         # process bill of sale SQL logic goes here
-        cursor.executescript(f'''UPDATE registrations SET expiry = '{self.get_current_date()}' WHERE vin = '{inputs['vin_of_car']}';
+        try:
+            cursor.executescript(f'''UPDATE registrations SET expiry = '{self.get_current_date()}' WHERE vin = '{inputs['vin_of_car']}';
                                 INSERT INTO registrations VALUES ('{regno}','{regdate}','{str(int(regdate[:4])+1)+regdate[4:]}',\
                                     '{inputs['New_plate_number']}','{inputs['vin_of_car']}','{inputs['firstname_of_new_owner']}',\
                                         '{inputs['lastname_of_new_owner']}');''')
-        sqlCursor.get_instance().get_connection().commit()
+            sqlCursor.get_instance().get_connection().commit()
+        except sqlCursor.get_error() as e:
+            print("error when proccessing bill of sale:" +  e)
         # end logic
         ##################################################################################
         print("successfully processed bill of sale\n")
@@ -399,15 +432,15 @@ class RegistryAgent(User):
         # perform issue ticket steps
         tno = input("Enter ticket number: ").strip()
         while not(tno).isdigit(): tno = input("Ticket number must be a digit : ")
-        payment = int(input("Enter payment amount: "))
-        if payment <= 0:
-            print('Payment must be greater than 0$')
-            SysCallManager.ReturnToDashboard()
-            return
         cursor.execute(f"SELECT fine FROM tickets WHERE tno={tno};")
         fine = cursor.fetchone()
         if fine == None:#error check if ticket is valid
             print('Ticket does not exist')
+            SysCallManager.ReturnToDashboard()
+            return
+        payment = int(input(f"Enter payment amount,payment required {fine[0]}: "))
+        if payment <= 0:
+            print('Payment must be greater than 0$')
             SysCallManager.ReturnToDashboard()
             return
         fine = fine[0]
@@ -422,13 +455,19 @@ class RegistryAgent(User):
         cursor.execute(f"SELECT sum(amount) FROM payments WHERE tno=? GROUP BY tno;",tno)
         cur_payments = cursor.fetchone()
         if cur_payments == None:#True if no payments have been made yet
-            cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
-            sqlCursor.get_instance().get_connection().commit()
+            try:
+                cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
+                sqlCursor.get_instance().get_connection().commit()
+            except sqlCursor.get_error() as e:
+                print(f"error when inserting ticket payment: {tno}")
         else:
             cur_payments = cur_payments[0]
             if (int(cur_payments) + payment) <= fine:
-                cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
-                sqlCursor.get_instance().get_connection().commit()
+                try:
+                    cursor.execute(f"INSERT INTO payments VALUES ('{tno}','{cur_date}',{payment});")
+                    sqlCursor.get_instance().get_connection().commit()
+                except sqlCursor.get_error() as e:
+                    print(f"error when inserting ticket payment: {tno}")
             else:
                 print('sum of payments exceeds fine')
                 SysCallManager.ReturnToDashboard()
@@ -452,22 +491,31 @@ class RegistryAgent(User):
             print(f"{fname} {lname} is not in the database")
             SysCallManager.ReturnToDashboard()
             return
-        cursor.execute(f'''
+        try:
+            cursor.execute(f'''
                         SELECT COUNT(*),sum(points) FROM demeritNotices d
                         WHERE d.fname =:fname AND d.lname =:lname;''',{'fname':fname,'lname':lname})
+        except sqlCursor.get_error() as e:
+            print(f"error when trying to retrieve informtion about {fname} {lname}")
         num_dnotice = cursor.fetchone()
         if num_dnotice[1] == None: num_dnotice = (num_dnotice[0],0)#change the sum of total demerit points to 0 from None if there are no demerit points
-        cursor.execute(f'''
+        try:
+            cursor.execute(f'''
                         SELECT sum(points) FROM demeritNotices 
                         WHERE fname = :fname AND lname = :lname
                         AND  (julianday('now')-julianday(ddate)) <= 730;
                         ''',{'fname':fname,'lname':lname})
+        except sqlCursor.get_error() as e:
+            print(f"error when retrieving data about {fname} {lname}")
         num_points = cursor.fetchone()
         if num_points[0] == None: num_points = 0#change the sum of total demerit points to 0 from None if there are no demerit points
         else: num_points = num_points[0]
-        cursor.execute(f'''SELECT t.tno,t.vdate,t.violation,t.fine,r.regno,v.make,v.model FROM tickets t,registrations r,vehicles v 
+        try:
+            cursor.execute(f'''SELECT t.tno,t.vdate,t.violation,t.fine,r.regno,v.make,v.model FROM tickets t,registrations r,vehicles v 
                         WHERE r.fname =:fname AND r.lname =:lname AND r.regno = t.regno
                         AND r.vin = v.vin ORDER BY t.vdate DESC;''',{'fname':fname,'lname':lname})
+        except sqlCursor.get_error() as e:
+            print(f"error when retrieving data about {fname} {lname}")
         tickets = cursor.fetchall()
         if tickets == None:tickets=0
         print(f"-----{fname} {lname}'s Driver Abstract-----\nnumber of tickets: {len(tickets)}\nnumber of demerit notices: {num_dnotice[0]}\nnumber of demeritpoints within the past 2 years: {num_points}\ntotal number of demerit points: {num_dnotice[1]}")
@@ -492,5 +540,5 @@ class RegistryAgent(User):
         # end logic
         ##################################################################################
         print("successfully retrieved driver abstract\n")
-        SysCallManager.clearWindow()
+        SysCallManager.ReturnToDashboard()
         return

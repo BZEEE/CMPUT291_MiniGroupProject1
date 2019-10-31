@@ -159,6 +159,8 @@ class TrafficOfficer(User):
         cursorResponse = cursor.fetchall()
         
         if (cursorResponse != None or len(cursorResponse) == 0):
+            temp = set(cursorResponse)
+            cursorResponse = list(temp)
             if (len(cursorResponse) > 4):
                 # show make, model, year, color, and plate of all matches
                 # let user select one

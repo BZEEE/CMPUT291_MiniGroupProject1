@@ -22,5 +22,4 @@ class sqlCursor:
     @staticmethod
     def get_error():
         return sqlite3.Error
-
     
