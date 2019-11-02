@@ -121,46 +121,56 @@ class TrafficOfficer(User):
 
         query = "Select r.fname, r.lname, v.make, v.model, v.year, v.color, r.plate, r.regdate, r.expiry " \
                 "From registrations As r, vehicles As v " \
-                "Where r.vin = v.vin And "
-        query += "("
-        for make in range(len(carMakes)):
-            if (make == 0):
-                query += "v.make='{}'".format(carMakes[make])
-            else:
-                query += " Or v.make='{}'".format(carMakes[make])
-        query += ") And ("
-        for model in range(len(carModels)):
-            if (model == 0):
-                query += "v.model='{}'".format(carModels[model])
-            else:
-                query += "Or v.model='{}'".format(carModels[model])
-        query += ") And ("
-        for year in range(len(carYears)):
-            if (year == 0):
-                query += "v.year='{}'".format(carYears[year])
-            else:
-                query += "Or v.year='{}'".format(carYears[year])
-        query += ") And ("
-        for color in range(len(carColors)):
-            if (color == 0):
-                query += "v.color='{}'".format(carColors[color])
-            else:
-                query += "Or v.color='{}'".format(carColors[color])
-        query += ") And ("
-        for plate in range(len(carPlates)):
-            if (plate == 0):
-                query += "r.plate='{}'".format(carPlates[plate])
-            else:
-                query += " Or r.plate='{}'".format(carPlates[plate])
-        query += ") COLLATE NOCASE"
+                "Where r.vin = v.vin"
+        
+        if (carMakes[0] != ""):
+            query += " And ("
+            for make in range(len(carMakes)):
+                if (make == 0):
+                    query += "v.make='{}'".format(carMakes[make])
+                else:
+                    query += " Or v.make='{}'".format(carMakes[make])
+            query += ")"
+        if (carModels[0] != ""):
+            query += " And ("
+            for model in range(len(carModels)):
+                if (model == 0):
+                    query += "v.model='{}'".format(carModels[model])
+                else:
+                    query += "Or v.model='{}'".format(carModels[model])
+            query += ")"
+        if (carYears[0] != ""):
+            query += " And ("
+            for year in range(len(carYears)):
+                if (year == 0):
+                    query += "v.year='{}'".format(carYears[year])
+                else:
+                    query += "Or v.year='{}'".format(carYears[year])
+            query += ")"
+        if (carColors[0] != ""):
+            query += " And ("
+            for color in range(len(carColors)):
+                if (color == 0):
+                    query += "v.color='{}'".format(carColors[color])
+                else:
+                    query += "Or v.color='{}'".format(carColors[color])
+            query += ")"
+        if (carPlates[0] != ""):
+            query += " And ("
+            for plate in range(len(carPlates)):
+                if (plate == 0):
+                    query += "r.plate='{}'".format(carPlates[plate])
+                else:
+                    query += " Or r.plate='{}'".format(carPlates[plate])
+            query += ")"
+        query += " COLLATE NOCASE"
+        print(query)
         cursor.execute(query)
         conn.commit()
 
         cursorResponse = cursor.fetchall()
         
         if (cursorResponse != None or len(cursorResponse) == 0):
-            temp = set(cursorResponse)
-            cursorResponse = list(temp)
             if (len(cursorResponse) > 4):
                 # show make, model, year, color, and plate of all matches
                 # let user select one
