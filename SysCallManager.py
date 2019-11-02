@@ -5,7 +5,7 @@ import time
 class SysCallManager:
     @staticmethod
     def clearWindow():
-        os.system("cls")
+        os.system("clear")
 
     @staticmethod 
     def ReturnToDashboard():
@@ -17,6 +17,6 @@ class SysCallManager:
             time.sleep(1)
             i -= 1
         
-        os.system("cls")
+        os.system("clear")
 
         

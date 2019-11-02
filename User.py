@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod 
 from cursor import sqlCursor
 from AuthenticationManager import AuthenticationManager
+
 #from SessionManager import SessionManager
 class User:
     # base class representing shared data amongst al users
@@ -53,6 +54,10 @@ class User:
     def getUserCity():
         #pass in created uid and pwd
         cursor = sqlCursor.get_instance().get_cursor()
-        cursor.execute("SELECT city FROM users WHERE uid=:uid AND pwd=:pwd",{'uid':AuthenticationManager.validUid,'pwd':AuthenticationManager.validPassword})
+        try:
+            cursor.execute("SELECT city FROM users WHERE uid=:uid AND pwd=:pwd",{'uid':AuthenticationManager.validUid,'pwd':AuthenticationManager.validPassword})
+        except sqlCursor.get_error as e:
+            print("error when retieving the user's city from the database")
+            return
         return cursor.fetchone()[0]
         
