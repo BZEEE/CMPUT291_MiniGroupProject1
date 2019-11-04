@@ -1,8 +1,9 @@
 
 import sqlite3
-
 class sqlCursor:
-    __conn = sqlite3.connect('./mgp1.db')
+    db = open('dbname.txt')
+    __conn = sqlite3.connect(db.readline().strip())
+    db.close()
     __singleton = None
     __cursor = None
     @staticmethod
@@ -13,7 +14,6 @@ class sqlCursor:
             return sqlCursor.__singleton
         else:
             return sqlCursor.__singleton
-
     def get_connection(self):
         return self.__conn
 

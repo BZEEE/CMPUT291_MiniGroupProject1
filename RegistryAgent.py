@@ -4,7 +4,6 @@ from SysCallManager import SysCallManager
 from cursor import sqlCursor
 from UniqueIDManager import UniqueIDManager
 from InputFormatter import InputFormatter
-import sqlite3
 
 class RegistryAgent(User):
     # inherit from base properties of user
@@ -122,19 +121,22 @@ class RegistryAgent(User):
         columns = self.iterate(columns,keys)#asks for user inputs
         prop_form = ['str','str','str','str','str','str','str','date','str']#error checking
         if InputFormatter.iterate_check(columns,prop_form,keys) == False:return#if this is true it means user returned to dashboard
+        if not(self.check_person(columns['fname'],columns['lname'])):#True if person is in the database
+            print("{} {} is already in the database".format(columns['fname'],columns['lname']))
+            return
         if self.check_person(columns['f_fname'],columns['f_lname']):#True if father is not in database
             print("Enter information about {} {}'s father'".format(columns['fname'],columns['lname']))
             columns2 = {'f_bdate': None,'f_bplace': None,'f_address': None,'f_phone': None}
             keys2 = ['f_bdate','f_bplace','f_address','f_phone']#needed to input user in proper order since dictionaries are not ordered
             columns2 = self.iterate(columns2,keys2)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
-            if InputFormatter.iterate_check(columns2,prop_form,keys2) == False:return#is this is true it means user returned to dashboard
+            if InputFormatter.iterate_check(columns2,prop_form,keys2,"null") == False:return#is this is true it means user returned to dashboard
             try:
                 cursor.execute('''INSERT INTO persons VALUES 
                 ('{}','{}','{}','{}','{}','{}');'''\
                     .format(columns['f_fname'],columns['f_lname'],columns2['f_bdate'],columns2['f_bplace'],columns2['f_address'],columns2['f_phone']))
                 sqlCursor.get_instance().get_connection().commit()
-            except sqlite3.Error as e:
+            except sqlCursor.get_error() as e:
                 print("error when inserting details of {} {} into the database".format(columns['f_fname'],columns['f_lname']))
                 return
         if self.check_person(columns['m_fname'],columns['m_lname']):#True if mother is not in database
@@ -143,13 +145,13 @@ class RegistryAgent(User):
             keys3 = ['m_bdate','m_bplace','m_address','m_phone']#needed to input user in proper order since dictionaries are not ordered
             columns3 = self.iterate(columns3,keys3)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
-            if InputFormatter.iterate_check(columns3,prop_form,keys3) == False:return#is this is true it means user returned to dashboard
+            if InputFormatter.iterate_check(columns3,prop_form,keys3,"null") == False:return#if this is true it means user returned to dashboard
             try:
                 cursor.execute('''INSERT INTO persons VALUES 
                 ('{}','{}','{}','{}','{}','{}');'''\
                     .format(columns['m_fname'],columns['m_lname'],columns3['m_bdate'],columns3['m_bplace'],columns3['m_address'],columns3['m_phone']))
                 sqlCursor.get_instance().get_connection().commit()
-            except sqlite3.Error as e:
+            except sqlCursor.get_error() as e:
                     print("error when inserting details of {} {} into the database".format(columns['m_fname'],columns['m_lname']))
                     return
         regno = UniqueIDManager.getUniqueRegistrationNumber('births')#generate unique number
@@ -159,7 +161,7 @@ class RegistryAgent(User):
         try:
             cursor.execute("SELECT address,phone FROM persons WHERE fname=:m_fname COLLATE NOCASE AND lname=:m_lname COLLATE NOCASE;",\
             {'m_fname':columns['m_fname'],'m_lname':columns['m_lname']})
-        except sqlite3.Error as e:
+        except sqlCursor.get_error() as e:
             print("error when retrieving data about {} {} ".format(columns['m_fname'],columns['m_lname']))
             return
         m_info = cursor.fetchone()
@@ -169,7 +171,7 @@ class RegistryAgent(User):
         # register birt SQL logic goes here
         try:
             cursor.executescript('''INSERT INTO births VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}');
-            INSERT INTO persons VALUES ('{}','{}','{}','{}','{}','{}');'''\
+            INSERT INTO persons VALUES ('{}','{}' ,'{}' ,'{}','{}','{}');'''\
                 .format(regno,columns['fname'],columns['lname'],regdate,regplace,columns['gender'],columns['f_fname'],columns['f_lname'],columns['m_fname'],columns['m_lname'],columns['fname'],columns['lname'],columns['bdate'],columns['bplace'],m_address,m_phone))
             sqlCursor.get_instance().get_connection().commit()
         except sqlCursor.get_error() as e:
@@ -201,7 +203,7 @@ class RegistryAgent(User):
             keys2 = ['bdate','bplace','address','phone']
             columns2 = self.iterate(columns2,keys2)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
-            if InputFormatter.iterate_check(columns2,prop_form,keys2) == False:return#this is true it means user returned to dashboard
+            if InputFormatter.iterate_check(columns2,prop_form,keys2,"null") == False:return#if this is true it means user returned to dashboard
             try:
                 cursor.execute('''INSERT INTO persons VALUES 
                 ('{}','{}','{}','{}','{}','{}');'''.format\
@@ -216,7 +218,7 @@ class RegistryAgent(User):
             keys3 = ['bdate','bplace','address','phone']
             columns3 = self.iterate(columns3,keys3)#asks for user inputs
             prop_form = ['date','str','None','phone']#error checking
-            if InputFormatter.iterate_check(columns3,prop_form,keys3) == False:return#is this is true it means user returned to dashboard
+            if InputFormatter.iterate_check(columns3,prop_form,keys3,"null") == False:return#if this is true it means user returned to dashboard
             try:
                 cursor.execute('''INSERT INTO persons VALUES 
                 ('{}','{}','{}','{}','{}','{}');'''.\
@@ -319,7 +321,7 @@ class RegistryAgent(User):
             print("error when retrieving data from vehicle with vin: {}".format(inputs['vin_of_car']))
             return
         owner = cursor.fetchone() 
-        if owner == None or (owner[0] != inputs['firstname_of_current_owner'] or owner[1] != inputs['lastname_of_current_owner']):
+        if owner == None or (owner[0].lower() != inputs['firstname_of_current_owner'].lower() or owner[1].lower() != inputs['lastname_of_current_owner'].lower()):
             #This will check if the most recent owner of the vehicle is the inputed current owner and if it isnt user will be returned to Dashboard
             print("The inputed vehicle with the vin number {} is not currently owned by {} {}"\
                 .format(inputs['vin_of_car'],inputs['firstname_of_current_owner'],inputs['lastname_of_current_owner']))
@@ -371,7 +373,7 @@ class RegistryAgent(User):
             return
         if cur_payments == None:paid = 0
         else:paid = cur_payments[0]
-        payment = int(input("Enter payment amount,payment required {}: ".format(int(fine[0]) - int(paid)).strip()))
+        payment = int(input("Enter payment amount,payment required {}$: ".format(int(fine[0]) - int(paid)).strip()))
         if payment <= 0:
             print('Payment must be greater than 0$')
             SysCallManager.ReturnToDashboard()

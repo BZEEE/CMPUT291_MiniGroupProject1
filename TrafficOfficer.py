@@ -164,7 +164,6 @@ class TrafficOfficer(User):
                     query += " Or r.plate='{}'".format(carPlates[plate])
             query += ")"
         query += " COLLATE NOCASE"
-        print(query)
         cursor.execute(query)
         conn.commit()
 

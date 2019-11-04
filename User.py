@@ -48,7 +48,7 @@ class User:
                 print(" | ", end="")
             print("")
 
-        # this method has the same behaviour for every user; Registry Agent, Traffic Officer, etc
+        # this method has the same behaviour for everyprint
         print("\n")
     @staticmethod
     def getUserCity():
@@ -56,7 +56,7 @@ class User:
         cursor = sqlCursor.get_instance().get_cursor()
         try:
             cursor.execute("SELECT city FROM users WHERE uid=:uid AND pwd=:pwd",{'uid':AuthenticationManager.validUid,'pwd':AuthenticationManager.validPassword})
-        except sqlCursor.get_error as e:
+        except sqlCursor.get_error() as e:
             print("error when retieving the user's city from the database")
             return
         return cursor.fetchone()[0]

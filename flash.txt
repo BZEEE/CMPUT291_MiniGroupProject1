@@ -141,7 +141,7 @@ insert into vehicles values ('U106', 'Chevrolet', 'Camaro', 1965, 'red');
 
 insert into registrations values (0, '2008-05-26','2010-05-25', 'WCing','U100', 'John', 'Snow');
 insert into registrations values (1, '2009-01-16','2022-01-15', 'WCing','U101', 'Ned', 'Stark');
-insert into registrations values (3, '2010-05-26','2019-10-30', 'WCing','U102', 'Bran', 'Stark');
+insert into registrations values (3, '2010-05-26','2019-11-5', 'WCing','U102', 'Bran', 'Stark');
 insert into registrations values (4, '2010-01-16','2005-01-15', 'WCing','U103', 'Arya', 'Stark');
 
 insert into registrations values (5, '2012-05-26','2021-05-25', 'WCing','U104', 'Jamie', 'Lannister');
@@ -150,6 +150,7 @@ insert into registrations values (7, '2014-05-26','2021-05-25', 'WCing','U106', 
 insert into registrations values (8, '2015-01-16','2022-01-15', 'WCing','U105', 'Sansa', 'Stark');
 insert into registrations values (9, '2016-05-26','2021-05-25', 'WCing','U104', 'Daenerys', 'Targaryan');
 insert into registrations values (10, '2016-05-26','2021-05-25', 'WCing','U106', 'Ned', 'Stark');
+insert into registrations values (11, '2015-05-26','2010-05-25', 'WCing','U100', 'Ned', 'Stark');
 
 insert into tickets values (0,0,20,'speeding','2016-05-26');
 insert into tickets values (1,1,30,'speeding','2017-08-26');

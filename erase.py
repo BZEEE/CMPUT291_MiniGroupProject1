@@ -1,0 +1,1 @@
+open('dbname.txt','w').close()
